@@ -88,11 +88,14 @@
 .chat-pomo {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   font-size: 12px;
-  background: rgba(0, 0, 0, 0.18);
-  border-top: 1px solid rgba(90, 210, 255, 0.15);
+  background: rgba(20, 48, 72, 0.72);
+  border-top: 1px solid rgba(90, 210, 255, 0.28);
+  border-bottom: 1px solid rgba(90, 210, 255, 0.18);
+  color: #dff6ff;
 }
 
 .chat-pomo button {
