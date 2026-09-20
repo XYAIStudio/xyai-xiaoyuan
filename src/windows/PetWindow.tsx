@@ -52,10 +52,10 @@ export default function PetWindow() {
   const autoRef = useRef(true);
   const lockRef = useRef(false);
   const lifeRef = useRef<PetLifecycle>("idle");
-  const lifeAtRef = useRef(Date.now());
+  const lifeAtRef = useRef(0);
   const tickRef = useRef(0);
   const manualHoldUntilRef = useRef(0);
-  const lastIdleAtRef = useRef(Date.now());
+  const lastIdleAtRef = useRef(0);
   const draggingRef = useRef(false);
   const moved = useRef(false);
   const readyRef = useRef(false);
@@ -65,6 +65,8 @@ export default function PetWindow() {
 
   useEffect(() => {
     preloadPetPoses();
+    lastIdleAtRef.current = Date.now();
+    lifeAtRef.current = Date.now();
     let disposed = false;
     const unlisteners: Array<() => void> = [];
 
