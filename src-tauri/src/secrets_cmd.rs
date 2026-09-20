@@ -1,7 +1,9 @@
 use std::{collections::HashMap, fs, path::Path, sync::Mutex};
 
 use serde::Deserialize;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
+#[cfg(debug_assertions)]
+use tauri::Manager;
 
 use crate::config_cmd;
 
@@ -10,6 +12,7 @@ use keyring::{Entry, Error};
 
 #[cfg(not(debug_assertions))]
 const KEYRING_SERVICE: &str = "com.xyai.xiaoyuan";
+#[cfg(debug_assertions)]
 const DEV_SECRETS_FILE: &str = "dev-secrets.json";
 static SECRETS_WRITE_LOCK: Mutex<()> = Mutex::new(());
 

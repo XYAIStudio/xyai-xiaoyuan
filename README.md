@@ -76,7 +76,7 @@ npm run mock:backends
 
 本仓库已配置 NSIS（`setup.exe`）与 MSI。Linux 云主机不能签出 Windows 安装包，请走 GitHub Actions：
 
-- PR / `cursor/**` 分支：工作流 **Windows installers**（`.github/workflows/windows.yml`）在 `windows-latest` 构建，产物在该 run 的 Artifacts 里，名称 `xyai-xiaoyuan-windows-x64`
+- PR / `cursor/**` 分支：工作流 **Windows installers**（`.github/workflows/windows.yml`）在 `windows-latest` 构建。NSIS 产物在 Artifacts `xyai-xiaoyuan-windows-x64-nsis`（Windows 安装包文件名用 ASCII `XYAI Xiaoyuan`，应用内标题仍是中文）。MSI 若 WiX 失败会单独跳过。
 - 本机若已是 Windows：`npx tauri build --bundles nsis,msi`
 - 图标来自小元官方画（`src-tauri/icons/`，`assets/mascot/icon-source.png`）
 
