@@ -1,3 +1,5 @@
+import { resolvePose } from "./poseMachine";
+
 export const PET_POSE_IDS = [
   "wave",
   "thumbs",
@@ -26,6 +28,8 @@ export type PetLifecycle =
   | "thinking"
   | "streaming"
   | "tool"
+  | "create"
+  | "affection"
   | "success"
   | "error"
   | "welcome";
@@ -197,34 +201,38 @@ export function poseSrc(id: PetPoseId): string {
   return PET_POSES[id].src;
 }
 
+const preloadedPoseSrcs = new Set<string>();
+
+/** Decode all 16 pose PNGs once so the pet never hits disk mid-fade. */
+export function preloadPetPoses(): void {
+  if (typeof Image === "undefined") return;
+  for (const pose of PET_POSE_LIST) {
+    if (preloadedPoseSrcs.has(pose.src)) continue;
+    const image = new Image();
+    image.decoding = "async";
+    image.src = pose.src;
+    preloadedPoseSrcs.add(pose.src);
+  }
+}
+
+export function resetPosePreloadCache(): void {
+  preloadedPoseSrcs.clear();
+}
+
 export function isNightHour(hour: number): boolean {
   return hour >= 22 || hour < 6;
 }
 
 export function poseForLifecycle(
   life: PetLifecycle,
-  options: { idlePose?: PetPoseId; hour?: number; autoExpression?: boolean } = {},
+  options: {
+    idlePose?: PetPoseId;
+    hour?: number;
+    autoExpression?: boolean;
+    lockPose?: boolean;
+    tick?: number;
+    current?: PetPoseId;
+  } = {},
 ): PetPoseId {
-  const idle = options.idlePose && isPetPoseId(options.idlePose) ? options.idlePose : "wave";
-  if (options.autoExpression === false && life !== "away") {
-    return idle;
-  }
-  switch (life) {
-    case "idle":
-      return options.hour != null && isNightHour(options.hour) ? "night" : idle;
-    case "away":
-      return "night";
-    case "welcome":
-      return "hug";
-    case "connecting":
-    case "thinking":
-    case "error":
-      return "think";
-    case "streaming":
-      return "run";
-    case "tool":
-      return "explore";
-    case "success":
-      return "thumbs";
-  }
+  return resolvePose(life, options);
 }

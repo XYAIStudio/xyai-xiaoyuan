@@ -70,18 +70,10 @@ impl Default for NestedUrlEmail {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct NestedUrl {
     pub base_url: String,
-}
-
-impl Default for NestedUrl {
-    fn default() -> Self {
-        Self {
-            base_url: String::new(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -112,6 +104,7 @@ pub struct AppConfig {
     pub provider_options: HashMap<String, Value>,
     pub mascot_id: String,
     pub auto_expression: bool,
+    pub lock_pose: bool,
     pub last_agent_id: Option<String>,
     pub thread_id_by_agent: HashMap<String, String>,
     pub pet_x: Option<f64>,
@@ -133,6 +126,7 @@ impl Default for AppConfig {
             provider_options: HashMap::new(),
             mascot_id: "wave".into(),
             auto_expression: true,
+            lock_pose: false,
             last_agent_id: None,
             thread_id_by_agent: HashMap::new(),
             pet_x: None,
@@ -224,6 +218,7 @@ fn merge_patch(cfg: &mut AppConfig, patch: Value) -> Result<(), String> {
             "providerOptions" => cfg.provider_options = patch_field(key, value.clone())?,
             "mascotId" => cfg.mascot_id = patch_field(key, value.clone())?,
             "autoExpression" => cfg.auto_expression = patch_field(key, value.clone())?,
+            "lockPose" => cfg.lock_pose = patch_field(key, value.clone())?,
             "lastAgentId" => cfg.last_agent_id = patch_field(key, value.clone())?,
             "threadIdByAgent" => cfg.thread_id_by_agent = patch_field(key, value.clone())?,
             "petX" => cfg.pet_x = patch_field(key, value.clone())?,

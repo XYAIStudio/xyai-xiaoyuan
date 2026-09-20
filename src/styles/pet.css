@@ -6,14 +6,46 @@
   user-select: none;
   cursor: grab;
   position: relative;
+  background: transparent;
+}
+
+.pet-stage {
+  position: relative;
+  width: 92%;
+  height: 92%;
+  background: transparent;
 }
 
 .pet-sprite {
-  width: 92%;
-  height: 92%;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   pointer-events: none;
+  background: transparent;
   filter: drop-shadow(0 8px 18px rgba(0, 180, 255, 0.28));
+}
+
+.pet-sprite.is-front {
+  opacity: 1;
+  z-index: 2;
+}
+
+.pet-sprite.is-back {
+  opacity: 1;
+  z-index: 1;
+  transition: opacity var(--pose-fade-ms, 380ms) ease;
+}
+
+.pet-sprite.is-back.is-leaving {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-sprite.is-back {
+    transition: none;
+  }
 }
 
 .pet-menu {

@@ -36,15 +36,20 @@ describe("official 16 poses", () => {
   it("maps lifecycle states onto poses", () => {
     expect(poseForLifecycle("welcome")).toBe("hug");
     expect(poseForLifecycle("thinking")).toBe("think");
-    expect(poseForLifecycle("streaming")).toBe("run");
-    expect(poseForLifecycle("tool")).toBe("explore");
+    expect(poseForLifecycle("streaming")).toBe("think");
+    expect(poseForLifecycle("tool")).toBe("run");
     expect(poseForLifecycle("success")).toBe("thumbs");
+    expect(poseForLifecycle("create")).toBe("magic");
+    expect(poseForLifecycle("affection")).toBe("hearts");
     expect(poseForLifecycle("away")).toBe("night");
     expect(poseForLifecycle("idle", { hour: 23 })).toBe("night");
     expect(poseForLifecycle("idle", { hour: 10, idlePose: "hearts" })).toBe("hearts");
     expect(
       poseForLifecycle("thinking", { idlePose: "hero", autoExpression: false }),
     ).toBe("hero");
+    expect(poseForLifecycle("thinking", { lockPose: true, current: "party" })).toBe(
+      "party",
+    );
     expect(isNightHour(2)).toBe(true);
     expect(isNightHour(12)).toBe(false);
   });

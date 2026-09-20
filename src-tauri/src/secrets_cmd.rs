@@ -127,6 +127,7 @@ fn secrets_path(app: &AppHandle) -> Result<std::path::PathBuf, String> {
 }
 
 #[tauri::command]
+#[allow(clippy::needless_return)]
 pub fn get_secret(app: AppHandle, key: String) -> Result<Option<String>, String> {
     validate_secret_key(&key)?;
     let username = scope_username(&app);
@@ -144,6 +145,7 @@ pub fn get_secret(app: AppHandle, key: String) -> Result<Option<String>, String>
 }
 
 #[tauri::command]
+#[allow(clippy::needless_return)]
 pub fn set_secret(app: AppHandle, key: String, value: String) -> Result<(), String> {
     let username = scope_username(&app);
     let account = secret_account(&username, &key)?;
@@ -158,6 +160,7 @@ pub fn set_secret(app: AppHandle, key: String, value: String) -> Result<(), Stri
 }
 
 #[tauri::command]
+#[allow(clippy::needless_return)]
 pub fn delete_secret(app: AppHandle, key: String) -> Result<(), String> {
     let username = scope_username(&app);
     let account = secret_account(&username, &key)?;

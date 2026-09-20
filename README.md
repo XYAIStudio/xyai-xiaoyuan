@@ -8,12 +8,12 @@ XYAI 官方桌面伴侣。小元是 XYAI 自有形象：透明置顶桌宠、紧
 
 在设置中选择后端并填写对应配置。密钥写入系统钥匙串（开发构建写入本机 `dev-secrets.json`，切勿提交）。
 
-| 后端 | 仓库 | 默认地址 | 状态 | 实际对接的公开接口 |
-| --- | --- | --- | --- | --- |
-| **FreeOS / XYAI** | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS) | `http://127.0.0.1:8088` | 可用 | `GET /api/setup/status` · `POST /api/auth/login` `{username,password}` → `{access_token}` · `GET /api/auth/me` · `GET /api/agents` · `POST /api/agents/{id}/threads` · `GET .../threads/{id}/history` · WebSocket `/api/agents/{id}/chat/ws?token=` |
-| **openXYOS 组织 OS** | [XYAIStudio/openXYOS](https://github.com/XYAIStudio/openXYOS) | `http://127.0.0.1:3000` | 可用 | `GET /api/health` · `POST /api/auth/login` `{email,password}` → `{data.tokens.accessToken}` · `GET /api/auth/me` · `GET /api/chats` · `GET/POST /api/chats/:id/messages` · `POST /api/assistant/chat` `{message,history,session_id}` → `{reply}`（小雄） |
-| **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口） | **未就绪** | 本地优先 Electron 工作台。公开仓库没有桌宠可调用的 listAgents / 对话 HTTP API。现有互通是 Studio → openXYOS：`POST /api/xyai/agents/import` 等，请求头 `X-XYAI-Interop: studio`。提供方已注册，设置里可见，连接测试会说明未就绪。 |
-| **本机 Grok Bot** | 本机网关（额外提供者） | `http://127.0.0.1:1340` | 可用 | `GET /health`（无鉴权）· `POST /api/listAgents` · `POST /api/sendPrompt` `{agentId,prompt}`，Bearer 令牌。可从 `sand-data/gateway.json` 的 `{port,scheme,host,token}` 导入（`0.0.0.0` / `::` 会改写为 `127.0.0.1`）。**仅本机 / 隧道使用，路径可能随网关版本变化。** |
+| 后端                       | 仓库                                                                | 默认地址                | 状态       | 实际对接的公开接口                                                                                                                                                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------- | ----------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **FreeOS / XYAI**          | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS)           | `http://127.0.0.1:8088` | 可用       | `GET /api/setup/status` · `POST /api/auth/login` `{username,password}` → `{access_token}` · `GET /api/auth/me` · `GET /api/agents` · `POST /api/agents/{id}/threads` · `GET .../threads/{id}/history` · WebSocket `/api/agents/{id}/chat/ws?token=`                  |
+| **openXYOS 组织 OS**       | [XYAIStudio/openXYOS](https://github.com/XYAIStudio/openXYOS)       | `http://127.0.0.1:3000` | 可用       | `GET /api/health` · `POST /api/auth/login` `{email,password}` → `{data.tokens.accessToken}` · `GET /api/auth/me` · `GET /api/chats` · `GET/POST /api/chats/:id/messages` · `POST /api/assistant/chat` `{message,history,session_id}` → `{reply}`（小雄）             |
+| **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 本地优先 Electron 工作台。公开仓库没有桌宠可调用的 listAgents / 对话 HTTP API。现有互通是 Studio → openXYOS：`POST /api/xyai/agents/import` 等，请求头 `X-XYAI-Interop: studio`。提供方已注册，设置里可见，连接测试会说明未就绪。                                    |
+| **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | `GET /health`（无鉴权）· `POST /api/listAgents` · `POST /api/sendPrompt` `{agentId,prompt}`，Bearer 令牌。可从 `sand-data/gateway.json` 的 `{port,scheme,host,token}` 导入（`0.0.0.0` / `::` 会改写为 `127.0.0.1`）。**仅本机 / 隧道使用，路径可能随网关版本变化。** |
 
 架构按「任意 XYAIStudio 自有后端」设计，不绑死单一产品。以后新增组织内的独立仓库，只需加一个 provider，不必重写桌宠与对话 UI。
 
@@ -49,26 +49,38 @@ npm run tauri dev
 
 官方造型包已纳入仓库（`assets/mascot/poses/` 中文文件名，`public/mascots/` 供界面使用），设置与右键菜单均可点选。
 
-| # | id | 文件 |
-| --- | --- | --- |
-| 01 | wave | 挥手问好 |
-| 02 | thumbs | 点赞鼓励 |
-| 03 | hearts | 比心 |
-| 04 | idea | 灵感乍现 |
-| 05 | think | 认真思考 |
-| 06 | run | 快乐奔跑 |
-| 07 | celebrate | 胜利跳跃 |
-| 08 | explore | 太空探索 |
-| 09 | magic | 魔法创造 |
-| 10 | garden | 园艺伙伴 |
-| 11 | music | 音乐律动 |
-| 12 | paint | 小画家 |
-| 13 | party | 庆祝生日 |
-| 14 | hug | 拥抱欢迎 |
-| 15 | hero | 超级英雄 |
-| 16 | night | 晚安陪伴 |
+| #   | id        | 文件     |
+| --- | --------- | -------- |
+| 01  | wave      | 挥手问好 |
+| 02  | thumbs    | 点赞鼓励 |
+| 03  | hearts    | 比心     |
+| 04  | idea      | 灵感乍现 |
+| 05  | think     | 认真思考 |
+| 06  | run       | 快乐奔跑 |
+| 07  | celebrate | 胜利跳跃 |
+| 08  | explore   | 太空探索 |
+| 09  | magic     | 魔法创造 |
+| 10  | garden    | 园艺伙伴 |
+| 11  | music     | 音乐律动 |
+| 12  | paint     | 小画家   |
+| 13  | party     | 庆祝生日 |
+| 14  | hug       | 拥抱欢迎 |
+| 15  | hero      | 超级英雄 |
+| 16  | night     | 晚安陪伴 |
 
-对话生命周期会映射到表情（思考 → think，生成中 → run，成功 → thumbs，夜间待机 → night 等），可在设置中关闭自动表情。
+对话生命周期会叠化切换到对应造型（约 380ms，避免透明窗黑闪），16 张 PNG 启动时预加载，不会每帧读盘：
+
+| 状态            | 姿态                                   |
+| --------------- | -------------------------------------- |
+| 待机 / 问候     | 挥手问好、拥抱欢迎（约 12 秒温和轮换） |
+| 思考 / 流式输出 | 认真思考、灵感乍现                     |
+| 忙碌 / 工具调用 | 快乐奔跑、太空探索                     |
+| 成功 / 完成     | 点赞鼓励、胜利跳跃                     |
+| 感谢 / 亲近     | 比心                                   |
+| 创作 / 生成     | 魔法创造、小画家                       |
+| 夜间 / 离开     | 晚安陪伴                               |
+
+流式输出或拖动桌宠时暂停待机轮换。右键菜单或设置里点选姿态会保持到下一次自动状态变化；勾选 **锁定姿态** 则完全冻结，直到取消锁定。设置中也可关闭自动表情。较长的流式回复会从思考姿态过渡到创作姿态。
 
 ## 许可证
 
@@ -86,3 +98,5 @@ Built-in providers: **FreeOS** (self-hosted multi-agent host, default `127.0.0.1
 npm install
 npm run tauri dev
 ```
+
+Browser preview (no always-on-top chrome): `npm run dev`, then `http://localhost:1420/?window=pet`. Poses crossfade (~380ms) instead of hard-cutting; all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. A right-click or Settings pick holds until the next automatic state change; **锁定姿态** freezes the current pose.

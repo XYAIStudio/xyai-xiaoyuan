@@ -32,6 +32,8 @@ export interface AppConfig {
   providerOptions: Record<string, Record<string, unknown>>;
   mascotId: PetPoseId;
   autoExpression: boolean;
+  /** Freeze the current pose until the user unlocks it. */
+  lockPose: boolean;
   lastAgentId: string | null;
   threadIdByAgent: Record<string, string>;
   petX: number | null;

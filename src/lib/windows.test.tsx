@@ -17,6 +17,7 @@ vi.mock("./tauriApi", () => {
         providerOptions: {},
         mascotId: "wave",
         autoExpression: true,
+        lockPose: false,
         lastAgentId: null,
         threadIdByAgent: {},
         petX: null,
@@ -39,6 +40,8 @@ vi.mock("./tauriApi", () => {
       emitMascotChanged: vi.fn(async () => undefined),
       listenMascotChanged: vi.fn(async () => () => undefined),
       listenPetLifecycle: vi.fn(async () => () => undefined),
+      emitConfigUpdated: vi.fn(async () => undefined),
+      listenConfigUpdated: vi.fn(async () => () => undefined),
       importGatewayJson: vi.fn(),
     },
   };
@@ -65,6 +68,7 @@ describe("PetWindow", () => {
       expect(screen.getAllByAltText(pose.labelZh).length).toBeGreaterThan(0);
     }
     expect(container.querySelectorAll(".pet-menu-poses button")).toHaveLength(16);
+    expect(screen.getByRole("button", { name: "锁定姿态" })).toBeInTheDocument();
   });
 });
 
@@ -80,5 +84,12 @@ describe("SettingsWindow", () => {
       "XYAI Studio 桌面工作台（未就绪）",
       "本机 Grok Bot",
     ]);
+  });
+
+  it("exposes pose auto-switch and lock controls on the pet tab", async () => {
+    render(<SettingsWindow />);
+    fireEvent.click(await screen.findByRole("button", { name: "桌宠" }));
+    expect(screen.getByLabelText("根据对话状态自动切换表情")).toBeChecked();
+    expect(screen.getByLabelText("锁定姿态")).not.toBeChecked();
   });
 });

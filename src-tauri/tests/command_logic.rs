@@ -73,6 +73,7 @@ fn config_patch_and_defaults() {
     assert_eq!(loaded.openxyos.base_url, "http://127.0.0.1:3000");
     assert_eq!(loaded.grokbot.base_url, "http://127.0.0.1:1340");
     assert_eq!(loaded.mascot_id, "wave");
+    assert!(!loaded.lock_pose);
 
     let patched = config_cmd::patch_at_path(
         &path,
@@ -80,6 +81,7 @@ fn config_patch_and_defaults() {
             "providerId": "openxyos",
             "petSize": 160,
             "mascotId": "hero",
+            "lockPose": true,
             "providerOptions": { "future-xyai-app": { "baseUrl": "http://127.0.0.1:9999" } }
         }),
     )
@@ -87,6 +89,7 @@ fn config_patch_and_defaults() {
     assert_eq!(patched.provider_id, "openxyos");
     assert_eq!(patched.pet_size, 160.0);
     assert_eq!(patched.mascot_id, "hero");
+    assert!(patched.lock_pose);
     assert_eq!(
         patched.provider_options["future-xyai-app"]["baseUrl"],
         "http://127.0.0.1:9999"

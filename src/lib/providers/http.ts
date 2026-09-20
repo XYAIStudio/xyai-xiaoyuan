@@ -56,13 +56,18 @@ function networkError(error: unknown): Error {
     )
   ) {
     return new Error(
-      message.includes("url not allowed") ? message : "无法连接服务，请检查地址是否可访问",
+      message.includes("url not allowed")
+        ? message
+        : "无法连接服务，请检查地址是否可访问",
     );
   }
   return error instanceof Error ? error : new Error(message);
 }
 
-export async function clientFetch(input: string, init?: RequestInit): Promise<Response> {
+export async function clientFetch(
+  input: string,
+  init?: RequestInit,
+): Promise<Response> {
   try {
     if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
       const { fetch: tauriFetch } = await import("@tauri-apps/plugin-http");

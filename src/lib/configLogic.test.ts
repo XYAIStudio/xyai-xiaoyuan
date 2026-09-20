@@ -1,4 +1,8 @@
-import { DEFAULT_APP_CONFIG, normalizeLoadedConfig, activeBaseUrl } from "./configLogic";
+import {
+  DEFAULT_APP_CONFIG,
+  normalizeLoadedConfig,
+  activeBaseUrl,
+} from "./configLogic";
 import { enqueueChatItem, queuedPreview, shiftChatItem } from "./messageQueue";
 import { chatErrorText, nextChatMessageId } from "./chatHelpers";
 import { ProviderHttpError } from "./providers/http";
@@ -9,6 +13,7 @@ describe("config defaults", () => {
     expect(DEFAULT_APP_CONFIG.freeos.baseUrl).toBe("http://127.0.0.1:8088");
     expect(DEFAULT_APP_CONFIG.openxyos.baseUrl).toBe("http://127.0.0.1:3000");
     expect(DEFAULT_APP_CONFIG.grokbot.baseUrl).toBe("http://127.0.0.1:1340");
+    expect(DEFAULT_APP_CONFIG.lockPose).toBe(false);
     const loaded = normalizeLoadedConfig({
       providerId: "not-a-backend",
       mascotId: "nope",
@@ -17,6 +22,7 @@ describe("config defaults", () => {
     } as never);
     expect(loaded.providerId).toBe("freeos");
     expect(loaded.mascotId).toBe("wave");
+    expect(loaded.lockPose).toBe(false);
     expect(loaded.petSize).toBe(180);
     expect(loaded.openxyos.email).toBe("a@b.c");
     expect(activeBaseUrl({ ...loaded, providerId: "openxyos" })).toBe(
@@ -37,9 +43,9 @@ describe("message queue", () => {
       expect(result.ok).toBe(true);
       queue = result.queue;
     }
-    expect(
-      enqueueChatItem(queue, { id: "overflow", text: "x", createdAt: 9 }).ok,
-    ).toBe(false);
+    expect(enqueueChatItem(queue, { id: "overflow", text: "x", createdAt: 9 }).ok).toBe(
+      false,
+    );
     const shifted = shiftChatItem(queue);
     expect(shifted.item?.id).toBe("q-0");
     expect(shifted.queue).toHaveLength(4);

@@ -32,7 +32,11 @@ export default function ChatWindow() {
           <button type="button" onClick={() => void tauriApi.showSettings()}>
             设置
           </button>
-          <button type="button" className="chat-close" onClick={() => void hideCurrentWindow()}>
+          <button
+            type="button"
+            className="chat-close"
+            onClick={() => void hideCurrentWindow()}
+          >
             ×
           </button>
         </div>

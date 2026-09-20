@@ -44,7 +44,9 @@ function lastAssistantText(rows: unknown): string {
     const row = rows[i] as Record<string, unknown>;
     const role = String(row.role ?? row.sender ?? row.type ?? "");
     if (/assistant|agent|bot/i.test(role) || row.isAssistant === true) {
-      const text = extractTextContent(row.content ?? row.text ?? row.body ?? row.message);
+      const text = extractTextContent(
+        row.content ?? row.text ?? row.body ?? row.message,
+      );
       if (text) return text;
     }
   }
@@ -95,11 +97,9 @@ export const grokBotProvider: BackendProvider = {
   },
 
   async listAgents(ctx) {
-    const rows = await command<Array<Record<string, unknown>> | { agents?: Array<Record<string, unknown>> }>(
-      ctx,
-      "listAgents",
-      {},
-    );
+    const rows = await command<
+      Array<Record<string, unknown>> | { agents?: Array<Record<string, unknown>> }
+    >(ctx, "listAgents", {});
     const list = Array.isArray(rows) ? rows : (rows.agents ?? []);
     return list.map((row) => ({
       id: String(row.id ?? row.agentId ?? row.uuid),

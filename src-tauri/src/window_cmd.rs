@@ -55,7 +55,7 @@ pub fn install_close_to_hide(app: &AppHandle) {
     for (label, window) in app.webview_windows() {
         let handle = app.clone();
         let label_owned = label.clone();
-        let _ = window.on_window_event(move |event| {
+        window.on_window_event(move |event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
                 if let Some(target) = handle.get_webview_window(&label_owned) {

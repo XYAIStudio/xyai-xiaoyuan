@@ -62,7 +62,9 @@ function unwrapData<T>(raw: AuthEnvelope<T> | T[]): T | T[] {
 
 function asRecordArray(value: unknown): Array<Record<string, unknown>> {
   if (Array.isArray(value)) {
-    return value.filter((row): row is Record<string, unknown> => !!row && typeof row === "object");
+    return value.filter(
+      (row): row is Record<string, unknown> => !!row && typeof row === "object",
+    );
   }
   return [];
 }
@@ -70,12 +72,7 @@ function asRecordArray(value: unknown): Array<Record<string, unknown>> {
 /** Last AI employee message from POST /api/chats/:id/messages (`data` is the full message list). */
 export function lastEmployeeReply(data: unknown): string {
   let rows = asRecordArray(data);
-  if (
-    rows.length === 0 &&
-    data &&
-    typeof data === "object" &&
-    "messages" in data
-  ) {
+  if (rows.length === 0 && data && typeof data === "object" && "messages" in data) {
     rows = asRecordArray((data as { messages?: unknown }).messages);
   }
   for (let i = rows.length - 1; i >= 0; i -= 1) {
@@ -176,8 +173,7 @@ export const openXyosProvider: BackendProvider = {
         const content = extractTextContent(row.content);
         if (!content) return [];
         const role =
-          String(row.sender_type ?? row.role ?? "") === "user" ||
-          row.user_id != null
+          String(row.sender_type ?? row.role ?? "") === "user" || row.user_id != null
             ? "user"
             : "assistant";
         return [

@@ -5,11 +5,7 @@ body,
   padding: 0;
   width: 100%;
   height: 100%;
-  font-family:
-    "Segoe UI",
-    "PingFang SC",
-    "Noto Sans SC",
-    sans-serif;
+  font-family: "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
 }
 
 html[data-window-label="pet"],

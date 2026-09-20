@@ -41,7 +41,10 @@ export const tauriApi = {
   },
   patchConfig: async (patch: Record<string, unknown>) => {
     if (!isTauri()) {
-      const next = normalizeLoadedConfig({ ...browserLoadConfig(), ...patch } as Partial<AppConfig>);
+      const next = normalizeLoadedConfig({
+        ...browserLoadConfig(),
+        ...patch,
+      } as Partial<AppConfig>);
       browserSaveConfig(next);
       return;
     }
@@ -76,8 +79,7 @@ export const tauriApi = {
     }
     await invoke("open_home", { baseUrl });
   },
-  showChatNearPet: () =>
-    isTauri() ? invoke("show_chat_near_pet") : Promise.resolve(),
+  showChatNearPet: () => (isTauri() ? invoke("show_chat_near_pet") : Promise.resolve()),
   hideChat: () => (isTauri() ? invoke("hide_chat") : Promise.resolve()),
   hidePet: () => (isTauri() ? invoke("hide_pet") : Promise.resolve()),
   showSettings: () => (isTauri() ? invoke("show_settings") : Promise.resolve()),
@@ -96,4 +98,6 @@ export const tauriApi = {
   emitPetLifecycle: (life: string) => emit("pet-lifecycle", life),
   listenPetLifecycle: (handler: (life: string) => void) =>
     listen<string>("pet-lifecycle", ({ payload }) => handler(payload)),
+  emitConfigUpdated: () => emit("config-updated"),
+  listenConfigUpdated: (handler: () => void) => listen("config-updated", handler),
 };

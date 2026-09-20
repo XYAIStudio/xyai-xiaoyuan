@@ -22,6 +22,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   providerOptions: {},
   mascotId: "wave",
   autoExpression: true,
+  lockPose: false,
   lastAgentId: null,
   threadIdByAgent: {},
   petX: null,
@@ -32,7 +33,9 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   keepWindowsVisible: true,
 };
 
-export function normalizeLoadedConfig(raw: Partial<AppConfig> | null | undefined): AppConfig {
+export function normalizeLoadedConfig(
+  raw: Partial<AppConfig> | null | undefined,
+): AppConfig {
   const merged: AppConfig = {
     ...DEFAULT_APP_CONFIG,
     ...raw,
@@ -45,6 +48,8 @@ export function normalizeLoadedConfig(raw: Partial<AppConfig> | null | undefined
   };
   merged.providerId = safeProviderId(merged.providerId);
   if (!isPetPoseId(merged.mascotId)) merged.mascotId = "wave";
+  if (typeof merged.lockPose !== "boolean") merged.lockPose = false;
+  if (typeof merged.autoExpression !== "boolean") merged.autoExpression = true;
   if (!(merged.petSize >= 80 && merged.petSize <= 224)) merged.petSize = 180;
   return merged;
 }

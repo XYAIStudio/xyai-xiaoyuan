@@ -16,9 +16,7 @@ import {
 const TOKEN_KEY = "freeos_token";
 const PASSWORD_KEY = "freeos_password";
 
-async function login(
-  ctx: ProviderContext,
-): Promise<{ access_token: string }> {
+async function login(ctx: ProviderContext): Promise<{ access_token: string }> {
   const password = await ctx.getSecret(PASSWORD_KEY);
   if (!ctx.username?.trim() || !password) {
     throw new Error("请先在设置中填写 FreeOS 用户名和密码");
@@ -122,9 +120,13 @@ export const freeOsProvider: BackendProvider = {
 
   async listAgents(ctx) {
     return withToken(ctx, async (token) => {
-      const rows = await apiJson<Array<Record<string, unknown>>>(ctx.baseUrl, "/agents", {
-        token,
-      });
+      const rows = await apiJson<Array<Record<string, unknown>>>(
+        ctx.baseUrl,
+        "/agents",
+        {
+          token,
+        },
+      );
       return mapAgents(rows ?? []);
     });
   },

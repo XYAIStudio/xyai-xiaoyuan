@@ -14,6 +14,7 @@ import {
 } from "../lib/messageQueue";
 import { getProvider } from "../lib/providers/registry";
 import type { ProviderId, ProviderContext } from "../lib/providers/types";
+import { poseHintFromUserText } from "../lib/poseMachine";
 import { tauriApi } from "../lib/tauriApi";
 import type { AgentSummary, AppConfig, ChatMessage } from "../lib/types";
 
@@ -173,14 +174,21 @@ export function useChatController() {
         { id: assistantId, role: "assistant", content: "", pending: true },
       ]);
       setConnection("streaming");
-      emitLife("thinking");
+      const hint = poseHintFromUserText(text);
+      emitLife(hint === "create" ? "create" : "thinking");
       const threadId = resolveThreadForAgent(cfg, agentId);
       handleRef.current = await provider.sendChat(contextOf(cfg), {
         agentId,
         text,
         threadId,
         history,
-        onLifecycle: (life) => emitLife(life),
+        onLifecycle: (life) => {
+          if (hint === "create" && (life === "thinking" || life === "streaming")) {
+            emitLife("create");
+            return;
+          }
+          emitLife(life);
+        },
         onAssistantDelta: (delta) => {
           setMessages((current) =>
             current.map((message) =>
@@ -199,7 +207,7 @@ export function useChatController() {
             ),
           );
           setConnection("connected");
-          emitLife("success");
+          emitLife(hint === "affection" ? "affection" : "success");
           window.setTimeout(() => emitLife("idle"), 1800);
           handleRef.current = null;
           const next = shiftChatItem(queueRef.current);
@@ -212,7 +220,12 @@ export function useChatController() {
           setMessages((current) =>
             current.map((row) =>
               row.id === assistantId
-                ? { ...row, pending: false, error: message, content: row.content || message }
+                ? {
+                    ...row,
+                    pending: false,
+                    error: message,
+                    content: row.content || message,
+                  }
                 : row,
             ),
           );
@@ -254,16 +267,21 @@ export function useChatController() {
     void initialize();
     let unlistenAuth: (() => void) | undefined;
     let unlistenShown: (() => void) | undefined;
-    void tauriApi.listenAuthUpdated(() => {
-      if (mounted.current) void initialize();
-    }).then((fn) => {
-      unlistenAuth = fn;
-    });
-    void tauriApi.listenChatShown(() => {
-      if (mounted.current && connectionRef.current === "disconnected") void initialize();
-    }).then((fn) => {
-      unlistenShown = fn;
-    });
+    void tauriApi
+      .listenAuthUpdated(() => {
+        if (mounted.current) void initialize();
+      })
+      .then((fn) => {
+        unlistenAuth = fn;
+      });
+    void tauriApi
+      .listenChatShown(() => {
+        if (mounted.current && connectionRef.current === "disconnected")
+          void initialize();
+      })
+      .then((fn) => {
+        unlistenShown = fn;
+      });
     return () => {
       mounted.current = false;
       stop();

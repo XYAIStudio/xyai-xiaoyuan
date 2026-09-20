@@ -38,6 +38,7 @@ export default function SettingsWindow() {
     await tauriApi.reloadHotkeys();
     await tauriApi.emitAuthUpdated();
     await tauriApi.emitMascotChanged(cfg.mascotId);
+    await tauriApi.emitConfigUpdated();
     setStatus("已保存");
   };
 
@@ -47,7 +48,8 @@ export default function SettingsWindow() {
     try {
       await tauriApi.saveConfig(cfg);
       if (password) {
-        const key = cfg.providerId === "openxyos" ? "openxyos_password" : "freeos_password";
+        const key =
+          cfg.providerId === "openxyos" ? "openxyos_password" : "freeos_password";
         if (cfg.providerId === "freeos" || cfg.providerId === "openxyos") {
           await tauriApi.setSecret(key, password);
         }
@@ -286,7 +288,8 @@ export default function SettingsWindow() {
                 从 gateway.json 导入
               </button>
               <p className="settings-note">
-                本机网关为内部接口，仅建议在 127.0.0.1 / 隧道内使用，路径与字段可能随版本变化。
+                本机网关为内部接口，仅建议在 127.0.0.1 /
+                隧道内使用，路径与字段可能随版本变化。
               </p>
             </>
           ) : null}
@@ -313,14 +316,29 @@ export default function SettingsWindow() {
             />
             根据对话状态自动切换表情
           </label>
-          <p className="settings-note">点击缩略图选择默认待机姿势（16 个官方造型）。</p>
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={cfg.lockPose}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, lockPose: event.target.checked }))
+              }
+            />
+            锁定姿态
+          </label>
+          <p className="settings-note">
+            点击缩略图选择默认待机姿势（16
+            个官方造型）。锁定后自动表情与待机轮换都会暂停，手动点选仍可更换当前造型。
+          </p>
           <div className="pose-grid">
             {PET_POSE_LIST.map((pose) => (
               <button
                 key={pose.id}
                 type="button"
                 className={cfg.mascotId === pose.id ? "is-active" : ""}
-                onClick={() => setCfg((c) => ({ ...c, mascotId: pose.id as PetPoseId }))}
+                onClick={() =>
+                  setCfg((c) => ({ ...c, mascotId: pose.id as PetPoseId }))
+                }
               >
                 <img src={pose.src} alt={pose.labelZh} />
                 <span>

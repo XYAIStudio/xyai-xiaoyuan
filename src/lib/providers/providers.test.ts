@@ -83,7 +83,12 @@ describe("provider-specific helpers", () => {
       ]),
     ).toBe("你好，我是同事");
     expect(
-      gatewayFileToSettings({ host: "0.0.0.0", port: 1340, scheme: "http", token: "t" }),
+      gatewayFileToSettings({
+        host: "0.0.0.0",
+        port: 1340,
+        scheme: "http",
+        token: "t",
+      }),
     ).toEqual({ baseUrl: "http://127.0.0.1:1340", token: "t" });
   });
 });
