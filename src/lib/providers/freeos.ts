@@ -6,6 +6,7 @@ import type {
   SendChatHandle,
   SendChatInput,
 } from "./types";
+import { runConnectionTest } from "./connection";
 import {
   apiJson,
   extractTextContent,
@@ -96,7 +97,7 @@ export const freeOsProvider: BackendProvider = {
   secretKeys: [PASSWORD_KEY, TOKEN_KEY],
 
   async testConnection(ctx): Promise<ConnectionTestResult> {
-    try {
+    return runConnectionTest(async () => {
       const status = await apiJson<{ setup_required?: boolean }>(
         ctx.baseUrl,
         "/setup/status",
@@ -110,12 +111,7 @@ export const freeOsProvider: BackendProvider = {
       });
       const name = String(me.display_name ?? me.username ?? ctx.username ?? "");
       return { ok: true, message: name ? `已连接：${name}` : "连接成功" };
-    } catch (error) {
-      return {
-        ok: false,
-        message: error instanceof Error ? error.message : "连接失败",
-      };
-    }
+    });
   },
 
   async listAgents(ctx) {

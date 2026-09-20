@@ -105,6 +105,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   moodEnergy: MOOD_DEFAULT,
   companionBubbles: true,
   screenUnderstanding: false,
+  allowScreenshotAnalysis: false,
   shortcutOpenChat: "CmdOrCtrl+Shift+C",
   shortcutToggleClickThrough: "CmdOrCtrl+Shift+T",
   shortcutPomodoro: "CmdOrCtrl+Shift+P",
@@ -171,6 +172,8 @@ export function normalizeLoadedConfig(
   merged.moodEnergy = clampMood(merged.moodEnergy);
   merged.companionBubbles = asBool(merged.companionBubbles, true);
   merged.screenUnderstanding = asBool(merged.screenUnderstanding, false);
+  merged.allowScreenshotAnalysis = asBool(merged.allowScreenshotAnalysis, false);
+  if (!merged.screenUnderstanding) merged.allowScreenshotAnalysis = false;
   merged.shortcutOpenPet = asString(merged.shortcutOpenPet, "CmdOrCtrl+Shift+Y");
   merged.shortcutOpenHome = asString(merged.shortcutOpenHome, "CmdOrCtrl+Shift+H");
   merged.shortcutOpenChat = asString(merged.shortcutOpenChat, "CmdOrCtrl+Shift+C");

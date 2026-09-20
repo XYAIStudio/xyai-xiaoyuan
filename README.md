@@ -66,9 +66,10 @@
 | 系统托盘       | 打开小元 / 对话 / 番茄钟 / 拍一拍 / 设置 / 检查更新             |
 | 16 官方造型    | 对话生命周期、活动感知、本地时钟、番茄钟共同驱动；可锁定姿态    |
 | 陪伴桌面       | 拍一拍 / 喂食 / 晚安、心情能量条、桌宠旁短气泡（不刷系统通知）  |
-| 声音脚手架     | 总开关默认关；音效 / 音乐 / 音量 / 安静时段                     |
+| 声音包         | 总开关默认关；仓库自制循环与拍一拍/喂食等音效                   |
+| 屏幕理解       | 默认关；可选本机窗口标题 / 截屏启发式，**永不上传截图**         |
 | 可插拔后端     | `BackendProvider` 对接 XYAIStudio 独立产品，并支持本机 Grok Bot |
-| Windows 安装包 | GitHub Actions 打 NSIS `setup.exe`                              |
+| Windows 安装包 | GitHub Actions 打 NSIS `setup.exe`；签名密钥可选                |
 | 自动更新       | 设置 / 托盘检查更新，源为 GitHub Releases `latest.json`         |
 
 ## 概览 Overview
@@ -133,7 +134,7 @@ npm run dev
 | `CmdOrCtrl+Shift+P` | 番茄钟开始/结束                                |
 | `CmdOrCtrl+Shift+K` | 拍一拍                                         |
 
-快捷键可在 **设置 → 快捷键** 修改。活动感知、声音、番茄钟与安静时段在 **设置 → 陪伴**（声音总开关默认关）。
+快捷键可在 **设置 → 快捷键** 修改。活动感知、声音、番茄钟、安静时段与屏幕理解在 **设置 → 陪伴**（声音总开关与屏幕理解默认关）。
 
 ### 对接本机后端
 
@@ -160,7 +161,7 @@ npm run mock:backends
 | openXYOS | `http://127.0.0.1:13000` | `xiaoyuan@xyai.local` / `xiaoyuan` |
 | Grok Bot | `http://127.0.0.1:11340` | 令牌 `mock-token`                  |
 
-另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。XYAI Studio 没有模拟对话入口，因为它在产品侧仍是未就绪。详见 [docs/backends.md](docs/backends.md)。
+另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」（会显示延迟）。对接真实本机后端：`npm run doctor` / `npm run live`，见 [docs/live-integration.md](docs/live-integration.md)。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。XYAI Studio 没有模拟对话入口，因为它在产品侧仍是未就绪。详见 [docs/backends.md](docs/backends.md)。
 
 ### 小元 16 表情
 
@@ -189,7 +190,7 @@ npm run mock:backends
 - 图标来自小元官方画（`src-tauri/icons/`，`assets/mascot/icon-source.png`）
 - MSI / WiX 未进 CI：需要 MSI 时请在本机 Windows 上用 ASCII productName 自行 `npx tauri build --bundles msi`
 
-下载步骤与密钥清单见 [docs/packaging-windows.md](docs/packaging-windows.md)。
+下载步骤见 [docs/packaging-windows.md](docs/packaging-windows.md)。生成密钥与 GitHub Secrets 见 [docs/signing.md](docs/signing.md)。没有签名密钥时 CI 仍打未签名 NSIS。
 
 ### 自动更新
 
@@ -242,9 +243,11 @@ make check
 | [快速开始](docs/getting-started.md)          | Node LTS、Rust 1.88+、`npm run tauri dev`、浏览器预览 |
 | [后端对接](docs/backends.md)                 | 四个提供者、设置字段、`npm run mock:backends`         |
 | [姿态与动画](docs/poses.md)                  | 16 官方造型、状态映射、锁定与叠化                     |
-| [活动感知与声音](docs/activity-and-sound.md) | 键盘鼠标空闲、音效开关、隐私边界                      |
+| [活动感知与声音](docs/activity-and-sound.md) | 键盘鼠标空闲、屏幕理解默认关、自制音效                |
+| [本机联调](docs/live-integration.md)         | `npm run doctor`、真实后端与 `.env.example`           |
 | [形象画廊](docs/gallery.md)                  | 动态 GIF + 16 静态造型预览                            |
-| [Windows 安装包](docs/packaging-windows.md)  | NSIS CI、Artifacts、更新签名密钥                      |
+| [Windows 安装包](docs/packaging-windows.md)  | NSIS CI、Artifacts、`latest.json`                     |
+| [签名与更新](docs/signing.md)                | updater 私钥、可选 Authenticode                       |
 | [架构](docs/architecture.md)                 | `BackendProvider`，如何加新的 XYAIStudio 后端         |
 | [贡献指南](docs/contributing.md)             | `make check`、PR 约定                                 |
 | [English](README_EN.md)                      | English landing page                                  |

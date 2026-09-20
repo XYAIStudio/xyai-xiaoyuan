@@ -2,6 +2,13 @@ import { useEffect, useRef, useState } from "react";
 
 import { ACTIVITY_POLL_MS, type ActivitySnapshot } from "../lib/activity";
 import { applyAudioSettings, playSfx } from "../lib/audio";
+import {
+  SCREEN_CAPTURE_INTERVAL_MS,
+  screenshotAnalysisActive,
+  screenUnderstandingActive,
+  understandScreen,
+  type ScreenUnderstandingResult,
+} from "../lib/screenUnderstanding";
 import { audioSettingsOf, pomodoroSettingsOf } from "../lib/configLogic";
 import {
   isPetPoseId,
@@ -122,6 +129,8 @@ export default function PetWindow() {
   const prevIdleMs = useRef(0);
   const feedAtRef = useRef<number[]>([]);
   const lastTrayLabel = useRef("");
+  const screenHintRef = useRef<ScreenUnderstandingResult | null>(null);
+  const lastScreenCaptureAt = useRef(0);
 
   const showToast = (text: string, tone: PetToast["tone"] = "info") => {
     const next = makeToast(text, tone);
@@ -188,10 +197,13 @@ export default function PetWindow() {
         activity: activityRef.current,
         idleThresholdMs: (cfg?.idleThresholdSec ?? 50) * 1000,
         longIdleThresholdMs: (cfg?.longIdleThresholdSec ?? 420) * 1000,
-        foregroundHints: cfg?.foregroundHints,
+        foregroundHints:
+          cfg?.foregroundHints || screenUnderstandingActive(cfg?.screenUnderstanding),
         moodEnabled: cfg?.moodMeterEnabled,
         moodEnergy: cfg?.moodMeterEnabled ? moodRef.current : undefined,
         pomodoroPhase: pomoRef.current.phase,
+        screenUnderstanding: screenUnderstandingActive(cfg?.screenUnderstanding),
+        screenHint: screenHintRef.current,
       });
     };
 
@@ -455,17 +467,40 @@ export default function PetWindow() {
         );
       }
 
-      if (cfg?.activityAware) {
+      if (cfg?.activityAware || screenUnderstandingActive(cfg?.screenUnderstanding)) {
+        const wantShot =
+          screenshotAnalysisActive(
+            cfg?.screenUnderstanding,
+            cfg?.allowScreenshotAnalysis,
+          ) && now - lastScreenCaptureAt.current >= SCREEN_CAPTURE_INTERVAL_MS;
+        if (wantShot) lastScreenCaptureAt.current = now;
         void tauriApi
           .getActivitySnapshot({
-            includeForeground: cfg.foregroundHints,
-            idleThresholdMs: cfg.idleThresholdSec * 1000,
+            includeForeground:
+              Boolean(cfg?.foregroundHints) ||
+              screenUnderstandingActive(cfg?.screenUnderstanding),
+            idleThresholdMs: (cfg?.idleThresholdSec ?? 50) * 1000,
           })
-          .then((snap) => {
-            if (disposed) return;
+          .then(async (snap) => {
+            if (disposed || !cfg) return;
             const previousIdle = prevIdleMs.current;
             prevIdleMs.current = snap.idleMs;
             activityRef.current = snap;
+            if (screenUnderstandingActive(cfg.screenUnderstanding)) {
+              const shot = wantShot
+                ? await tauriApi.analyzeScreen({ includeScreenshot: true })
+                : null;
+              const hint = await understandScreen({
+                title: shot?.title || snap.foreground?.title || "",
+                process: shot?.process || snap.foreground?.process || "",
+                category: snap.foreground?.category ?? shot?.category ?? "unknown",
+                capturedAt: now,
+                stats: shot?.stats ?? null,
+              });
+              screenHintRef.current = hint;
+            } else {
+              screenHintRef.current = null;
+            }
             if (cfg.moodMeterEnabled) {
               let nextMood = decayMood(moodRef.current, snap.idleMs);
               if (
@@ -489,7 +524,7 @@ export default function PetWindow() {
               applyPose("hug", true);
               speak("welcome-back", tickRef.current, true);
             }
-            const signature = `${snap.kind}:${snap.source}:${snap.foreground?.category ?? ""}`;
+            const signature = `${snap.kind}:${snap.source}:${snap.foreground?.category ?? ""}:${screenHintRef.current?.category ?? ""}`;
             if (
               signature !== lastActivityKind.current &&
               !lockRef.current &&

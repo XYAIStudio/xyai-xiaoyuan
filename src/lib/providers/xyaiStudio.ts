@@ -1,3 +1,4 @@
+import { runConnectionTest } from "./connection";
 import type {
   BackendProvider,
   ConnectionTestResult,
@@ -19,28 +20,20 @@ export const xyaiStudioProvider: BackendProvider = {
   secretKeys: ["studio_token"],
 
   async testConnection(ctx): Promise<ConnectionTestResult> {
-    if (!ctx.baseUrl.trim()) {
-      return {
-        ok: false,
-        message: "未就绪：请等待 Studio 暴露远程对话接口后再启用",
-      };
-    }
-    try {
+    return runConnectionTest(async () => {
+      if (!ctx.baseUrl.trim()) {
+        return {
+          ok: false,
+          message: "未就绪：请等待 Studio 暴露远程对话接口后再启用",
+        };
+      }
       const url = normalizeBaseUrl(ctx.baseUrl);
       const res = await clientFetch(url);
       return {
         ok: false,
         message: `探测到 ${url}（HTTP ${res.status}），但尚未发现桌宠可用的 listAgents / 对话端点`,
       };
-    } catch (error) {
-      return {
-        ok: false,
-        message:
-          error instanceof Error
-            ? `未就绪：${error.message}`
-            : "未就绪：无法探测 XYAI Studio",
-      };
-    }
+    });
   },
 
   async listAgents() {

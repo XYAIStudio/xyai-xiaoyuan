@@ -6,6 +6,7 @@ import type {
   SendChatHandle,
   SendChatInput,
 } from "./types";
+import { runConnectionTest } from "./connection";
 import { apiJson, clientFetch, extractTextContent, normalizeBaseUrl } from "./http";
 
 const TOKEN_KEY = "grokbot_token";
@@ -66,7 +67,7 @@ export const grokBotProvider: BackendProvider = {
   secretKeys: [TOKEN_KEY],
 
   async testConnection(ctx): Promise<ConnectionTestResult> {
-    try {
+    return runConnectionTest(async () => {
       const healthRes = await clientFetch(`${normalizeBaseUrl(ctx.baseUrl)}/health`);
       if (!healthRes.ok) throw new Error(`health HTTP ${healthRes.status}`);
       const health = (await healthRes.json()) as Record<string, unknown>;
@@ -88,12 +89,7 @@ export const grokBotProvider: BackendProvider = {
           ? agents.agents.length
           : 0;
       return { ok: true, message: `网关正常，智能体 ${count} 个` };
-    } catch (error) {
-      return {
-        ok: false,
-        message: error instanceof Error ? error.message : "连接失败",
-      };
-    }
+    });
   },
 
   async listAgents(ctx) {

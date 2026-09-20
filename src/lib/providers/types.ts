@@ -19,6 +19,8 @@ export interface ConnectionTestResult {
   ok: boolean;
   message: string;
   detail?: string;
+  /** Round-trip time of the connection test, when measured. */
+  latencyMs?: number;
 }
 
 export interface SendChatInput {

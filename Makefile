@@ -26,6 +26,9 @@ help:
 	@echo "  install          npm install"
 	@echo "  dev              npm run tauri dev"
 	@echo "  mock             npm run mock:backends"
+	@echo "  doctor           npm run doctor (probe localhost backends)"
+	@echo "  live             print live 联调 URLs"
+	@echo "  audio            generate original companion wavs"
 	@echo "  build            npm run tauri build"
 	@echo "  build-windows    print how to get NSIS from Actions"
 	@echo ""
@@ -48,6 +51,18 @@ dev:
 .PHONY: mock
 mock:
 	npm run mock:backends
+
+.PHONY: doctor
+doctor:
+	npm run doctor
+
+.PHONY: live
+live:
+	npm run live
+
+.PHONY: audio
+audio:
+	npm run audio:generate
 
 .PHONY: build
 build:

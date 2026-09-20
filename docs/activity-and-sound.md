@@ -1,8 +1,8 @@
 # 活动感知与声音
 
-小元可以根据你在电脑前忙不忙来换姿态，也可以播放轻量音效。两者都可在 **设置 → 陪伴** 关闭。默认：**活动感知开**，**声音总开关关**。
+小元可以根据你在电脑前忙不忙来换姿态，也可以播放轻量音效。两者都可在 **设置 → 陪伴** 关闭。默认：**活动感知开**，**声音总开关关**，**屏幕理解关**。
 
-实现：`src/lib/activity.ts`、`src/lib/audio.ts`、`src/lib/poseMachine.ts` 的 `resolveCompanionPose`，桌面端 `src-tauri/src/activity_cmd.rs`（Windows `GetLastInputInfo`）。
+实现：`src/lib/activity.ts`、`src/lib/audio.ts`、`src/lib/screenUnderstanding.ts`、`src/lib/poseMachine.ts` 的 `resolveCompanionPose`，桌面端 `src-tauri/src/activity_cmd.rs`（Windows `GetLastInputInfo`）与 `src-tauri/src/screen_cmd.rs`。
 
 ## 活动感知
 
@@ -22,14 +22,26 @@
 1. **锁定姿态**
 2. 对话流式 / 思考 / 工具忙碌 / 成功 / 出错 / 感谢
 3. 番茄钟专注 / 休息
-4. 活动感知
-5. 本地时钟（清晨问候、傍晚园艺、夜间晚安）
+4. **屏幕理解**（需手动打开）
+5. 活动感知
+6. 本地时钟（清晨问候、傍晚园艺、夜间晚安）
 
 活动感知 **不会截屏、不会做 OCR、不会把按键内容送出本机**。只知道「有没有在动」以及（可选）前台窗口标题。
 
+## 屏幕理解（默认关闭）
+
+设置 → 陪伴 → **理解屏幕内容**。默认关。打开后：
+
+1. **标题路径（默认）**：读取前台窗口标题与进程名，映射到写代码 / 浏览 / 开会 / 看视频，再换成对应姿态。
+2. **截屏分析（第二道开关）**：必须再勾选 **允许截屏分析**。每隔约 12 秒在本机拍摄缩小截图，只计算亮度、暗色占比、边缘密度等特征，用来识别「深色编辑器」或「全屏影像」。原始像素不写磁盘、**永不上传**、不发给任何后端或云端模型。
+
+本机还可注册 `registerLocalScreenAnalyzer` 钩子（进程内、可选）。默认内置启发式已覆盖 CI 与无 OCR/VLM 的环境，不是空实现。
+
+隐私说明见设置页与 `SCREEN_PRIVACY_NOTE_ZH`。关闭「理解屏幕内容」会同时关掉截屏分析。
+
 ## 声音
 
-占位文件在 `assets/audio/`，界面从 `public/audio/` 读取。仓库只放极短的静音 WAV，方便以后换成你自己的无版权素材。
+音效与陪伴循环由 `scripts/generate-audio.py` **在仓库内合成**，许可见 [`assets/audio/LICENSE`](../assets/audio/LICENSE)（对本仓库原始素材使用 CC0）。运行时从 `public/audio/` 读取。重新生成：`npm run audio:generate`。
 
 | 开关           | 默认 | 含义                    |
 | -------------- | ---- | ----------------------- |
@@ -39,9 +51,9 @@
 | `soundVolume`  | 40   | 0–100                   |
 | 安静时段       | 关   | 例如 22:00–07:00 不播放 |
 
-`playSfx(name)` / `setMusic(on)` 在关闭、安静时段或文件缺失时直接返回，不会抛错。
+打开总开关并勾选「背景音乐」后，`setMusic` 会循环播放 `companion-loop.wav`。拍一拍 / 喂食 / 番茄钟 / 消息完成会走对应音效。关闭、安静时段或文件缺失时直接返回，不会抛错。
 
-预定 cue：`pose-change`、`message-received`、`idle`、`pat`、`feed`、`pomodoro`、`error`、`hover`。不要往仓库提交受版权保护的音乐。
+预定 cue：`pose-change`、`message-received`、`idle`、`pat`、`feed`、`pomodoro`、`error`、`hover`。不要用受版权保护的音乐覆盖这些文件。
 
 ## 陪伴气泡
 
@@ -54,8 +66,4 @@
 
 对话里可直接发「拍一拍」「喂食」「晚安」「开始专注」「跳过」，或点输入框上方的快捷筹码。连续喂食三次会「吃饱啦」。
 
-## 明确以后再做
-
-**屏幕理解**（截屏 / OCR）只留了关闭的功能开关说明，本版本代码路径不会捕获像素。见 `src/lib/screenUnderstanding.ts`。
-
-相关测试：`src/lib/companion.test.ts`、`src/lib/poseMachine.test.ts`。
+相关测试：`src/lib/companion.test.ts`、`src/lib/poseMachine.test.ts`、`src/lib/screenUnderstanding.test.ts`。

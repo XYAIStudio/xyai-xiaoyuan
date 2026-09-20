@@ -138,6 +138,7 @@ pub struct AppConfig {
     pub mood_energy: u32,
     pub companion_bubbles: bool,
     pub screen_understanding: bool,
+    pub allow_screenshot_analysis: bool,
     pub shortcut_open_chat: String,
     pub shortcut_toggle_click_through: String,
     pub shortcut_pomodoro: String,
@@ -196,6 +197,7 @@ impl Default for AppConfig {
             mood_energy: 64,
             companion_bubbles: true,
             screen_understanding: false,
+            allow_screenshot_analysis: false,
             shortcut_open_chat: "CmdOrCtrl+Shift+C".into(),
             shortcut_toggle_click_through: "CmdOrCtrl+Shift+T".into(),
             shortcut_pomodoro: "CmdOrCtrl+Shift+P".into(),
@@ -381,7 +383,15 @@ fn merge_patch(cfg: &mut AppConfig, patch: Value) -> Result<(), String> {
                 cfg.mood_energy = clamp_u32(n, 0, 100);
             }
             "companionBubbles" => cfg.companion_bubbles = patch_field(key, value.clone())?,
-            "screenUnderstanding" => cfg.screen_understanding = patch_field(key, value.clone())?,
+            "screenUnderstanding" => {
+                cfg.screen_understanding = patch_field(key, value.clone())?;
+                if !cfg.screen_understanding {
+                    cfg.allow_screenshot_analysis = false;
+                }
+            }
+            "allowScreenshotAnalysis" => {
+                cfg.allow_screenshot_analysis = patch_field(key, value.clone())?
+            }
             "shortcutOpenChat" => cfg.shortcut_open_chat = patch_field(key, value.clone())?,
             "shortcutToggleClickThrough" => {
                 cfg.shortcut_toggle_click_through = patch_field(key, value.clone())?

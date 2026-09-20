@@ -126,7 +126,11 @@ export default function SettingsWindow() {
         setSecret: tauriApi.setSecret,
         deleteSecret: tauriApi.deleteSecret,
       });
-      setStatus(result.message);
+      setStatus(
+        result.latencyMs != null && !/ms）/.test(result.message)
+          ? `${result.message}（${result.latencyMs}ms）`
+          : result.message,
+      );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "测试失败");
     } finally {
@@ -187,8 +191,8 @@ export default function SettingsWindow() {
           </label>
           <p className="settings-note">
             小元可对接 XYAI Studio 组织下的独立产品（FreeOS、openXYOS、XYAI Studio
-            工作台等），以及额外的本机 Grok Bot
-            网关。切换后端不会改动桌宠与对话界面。没有本机服务时，可先跑{" "}
+            工作台等），以及额外的本机 Grok Bot 网关。切换后端不会改动桌宠与对话界面。先{" "}
+            <code>npm run doctor</code> 探活本机端口；没有真实服务时，可先跑{" "}
             <code>npm run mock:backends</code>，再把地址改成 18088 / 13000 / 11340。
           </p>
           {!provider.ready ? (
@@ -593,7 +597,7 @@ export default function SettingsWindow() {
                   setCfg((c) => ({ ...c, musicEnabled: event.target.checked }))
                 }
               />
-              背景音乐（需自行放入无版权素材）
+              背景音乐（仓库自制循环，需打开总开关）
             </label>
             <label className="settings-range">
               音量（{cfg.soundVolume}）
@@ -692,23 +696,41 @@ export default function SettingsWindow() {
             </p>
           </fieldset>
           <fieldset className="settings-fieldset">
-            <legend>屏幕理解（未启用）</legend>
+            <legend>屏幕理解（默认关闭）</legend>
             <label className="settings-check">
               <input
                 type="checkbox"
                 checked={cfg.screenUnderstanding}
-                disabled
                 onChange={(event) =>
                   setCfg((c) => ({
                     ...c,
                     screenUnderstanding: event.target.checked,
+                    allowScreenshotAnalysis: event.target.checked
+                      ? c.allowScreenshotAnalysis
+                      : false,
                   }))
                 }
               />
-              理解屏幕内容（实验，默认关闭，本版本不会截屏）
+              理解屏幕内容（默认关闭，仅本机分析）
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.allowScreenshotAnalysis}
+                disabled={!cfg.screenUnderstanding}
+                onChange={(event) =>
+                  setCfg((c) => ({
+                    ...c,
+                    allowScreenshotAnalysis: event.target.checked,
+                  }))
+                }
+              />
+              允许截屏分析（额外开关，永不上传）
             </label>
             <p className="settings-note">
-              以后若开放，会单独征求同意，并默认关闭。当前开关不可用，以免误开。
+              默认关闭。开启后，小元只在本机读取前台窗口标题与进程名，用来猜测你在写代码、浏览、开会或看视频，从而换姿态。勾选「允许截屏分析」才会周期性拍摄缩小截图并做亮度/边缘启发式判断。
+              <strong>截图不写磁盘、不上传、不发给任何后端或云端模型。</strong>
+              对话流式与锁定姿态优先于屏幕理解。
             </p>
           </fieldset>
           <div className="settings-actions">

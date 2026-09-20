@@ -32,16 +32,45 @@ jobs:
       - name: Install JS deps
         run: npm ci
 
+      - name: Optional Authenticode certificate
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) {
+            Write-Host "No WINDOWS_CERTIFICATE secret; skipping Authenticode (unsigned NSIS is OK)."
+            exit 0
+          }
+          $pfxPath = Join-Path $env:RUNNER_TEMP "xyai-xiaoyuan-codesign.pfx"
+          $bytes = [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE)
+          [IO.File]::WriteAllBytes($pfxPath, $bytes)
+          $password = $env:WINDOWS_CERTIFICATE_PASSWORD
+          if ([string]::IsNullOrWhiteSpace($password)) {
+            Write-Host "WINDOWS_CERTIFICATE set but password empty; skip Authenticode."
+            exit 0
+          }
+          $secure = ConvertTo-SecureString $password -AsPlainText -Force
+          $cert = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My -Password $secure
+          "WINDOWS_CERTIFICATE_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Imported Authenticode cert $($cert.Thumbprint)"
+
       - name: Build NSIS
         shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
+          CONFIG_JSON="$(python scripts/tauri-ci-config.py || python3 scripts/tauri-ci-config.py)"
           EXTRA=()
           if [ -z "${TAURI_SIGNING_PRIVATE_KEY}" ]; then
             echo "No TAURI_SIGNING_PRIVATE_KEY secret; building unsigned NSIS (no updater artifacts)."
-            EXTRA+=(--config '{"bundle":{"createUpdaterArtifacts":false}}')
+          fi
+          if [ -n "${WINDOWS_CERTIFICATE_THUMBPRINT}" ]; then
+            echo "Authenticode thumbprint present; passing certificateThumbprint to Tauri."
+          fi
+          if [ -n "${CONFIG_JSON}" ]; then
+            EXTRA+=(--config "${CONFIG_JSON}")
           fi
           # NSIS only: WiX light.exe fails on this runner with a Chinese MSI filename.
           # Windows packages use ASCII productName from tauri.windows.conf.json.

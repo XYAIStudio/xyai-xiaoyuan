@@ -183,6 +183,7 @@ describe("config companion defaults", () => {
     expect(DEFAULT_APP_CONFIG.sfxEnabled).toBe(true);
     expect(DEFAULT_APP_CONFIG.foregroundHints).toBe(false);
     expect(DEFAULT_APP_CONFIG.screenUnderstanding).toBe(false);
+    expect(DEFAULT_APP_CONFIG.allowScreenshotAnalysis).toBe(false);
     expect(DEFAULT_APP_CONFIG.companionBubbles).toBe(true);
     expect(DEFAULT_APP_CONFIG.shortcutPat).toBe("CmdOrCtrl+Shift+K");
     const loaded = normalizeLoadedConfig({
@@ -195,7 +196,8 @@ describe("config companion defaults", () => {
     expect(loaded.petOpacity).toBe(40);
     expect(loaded.soundVolume).toBe(100);
     expect(loaded.quietHoursStart).toBe("22:00");
-    expect(screenUnderstandingActive(true)).toBe(false);
+    expect(screenUnderstandingActive(undefined)).toBe(false);
+    expect(screenUnderstandingActive(true)).toBe(true);
   });
 });
 

@@ -2,6 +2,8 @@ import type { PetLifecycle, PetPoseId } from "./mascots";
 import type { ActivitySnapshot, AppCategory } from "./activity";
 import { TYPING_BURST_MS } from "./activity";
 import type { PomodoroPhase } from "./pomodoro";
+import type { ScreenUnderstandingResult } from "./screenUnderstanding";
+import { poseForScreenCategory } from "./screenUnderstanding";
 import { dayPeriodFromHour } from "./timeOfDay";
 
 /** Crossfade duration; keep short so the transparent pet never empties. */
@@ -55,6 +57,9 @@ export type CompanionPoseInput = PoseResolveOptions & {
   foregroundHints?: boolean;
   moodEnabled?: boolean;
   pomodoroPhase?: PomodoroPhase;
+  /** Opt-in title / local-screenshot pose hints. Default off. */
+  screenUnderstanding?: boolean;
+  screenHint?: ScreenUnderstandingResult | null;
 };
 
 const BUSY_LIVES: ReadonlySet<PetLifecycle> = new Set([
@@ -341,6 +346,11 @@ export function resolveCompanionPose(input: CompanionPoseInput): PetPoseId {
 
   const pomodoroPose = poseFromPomodoro(input.pomodoroPhase, tick, current, energy);
   if (pomodoroPose) return pomodoroPose;
+
+  if (input.screenUnderstanding && input.screenHint) {
+    const pool = poseForScreenCategory(input.screenHint.category);
+    if (pool) return pickWithMood(pool, tick, current, energy);
+  }
 
   if (input.activityAware !== false && input.activity) {
     const activityPose = poseFromActivity(input.activity, {

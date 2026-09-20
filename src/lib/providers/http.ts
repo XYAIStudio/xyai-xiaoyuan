@@ -1,3 +1,5 @@
+import { describeNetworkError } from "./connection";
+
 export class ProviderHttpError extends Error {
   status: number;
   body: string;
@@ -49,19 +51,7 @@ export function normalizeBaseUrl(raw: string): string {
 }
 
 function networkError(error: unknown): Error {
-  const message = error instanceof Error ? error.message : String(error);
-  if (
-    /load failed|failed to fetch|networkerror|network request failed|error sending request|url not allowed|econnrefused|fetch failed/i.test(
-      message,
-    )
-  ) {
-    return new Error(
-      message.includes("url not allowed")
-        ? message
-        : "无法连接服务，请检查地址是否可访问（本机后端需先启动，或运行 npm run mock:backends）",
-    );
-  }
-  return error instanceof Error ? error : new Error(message);
+  return new Error(describeNetworkError(error));
 }
 
 export const DEFAULT_FETCH_TIMEOUT_MS = 15_000;

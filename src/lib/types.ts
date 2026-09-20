@@ -83,9 +83,12 @@ export interface AppConfig {
   companionBubbles: boolean;
 
   /**
-   * Future screenshot/OCR module. Persisted but inert — never captures in this build.
+   * Opt-in screen understanding (window title / process). Default off.
+   * Never uploads pixels. Screenshot capture needs allowScreenshotAnalysis.
    */
   screenUnderstanding: boolean;
+  /** Extra consent for periodic local screenshot heuristics. Default off. */
+  allowScreenshotAnalysis: boolean;
 
   shortcutOpenChat: string;
   shortcutToggleClickThrough: string;
