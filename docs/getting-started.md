@@ -17,7 +17,7 @@ npm run tauri dev
 
 - 透明置顶桌宠（小元）
 - 系统托盘：打开小元 / 对话 / 设置 / 检查更新
-- 左键桌宠打开对话，右键打开菜单（16 表情 + 锁定姿态）
+- 单击桌宠轮换俏皮姿态，双击打开对话；右键菜单含 16 表情、拍一拍 / 喂食 / 晚安、锁定姿态
 
 默认全局快捷键：
 
@@ -25,6 +25,10 @@ npm run tauri dev
 | ------------------- | ---------------- |
 | `CmdOrCtrl+Shift+Y` | 显示小元         |
 | `CmdOrCtrl+Shift+H` | 打开当前后端主页 |
+| `CmdOrCtrl+Shift+C` | 打开对话         |
+| `CmdOrCtrl+Shift+T` | 切换点击穿透     |
+| `CmdOrCtrl+Shift+P` | 番茄钟开始/结束  |
+| `CmdOrCtrl+Shift+K` | 拍一拍           |
 
 可在 **设置 → 快捷键** 修改。
 

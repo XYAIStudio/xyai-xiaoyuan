@@ -37,10 +37,22 @@ import {
   formatRemaining,
   idlePomodoro,
   remainingMs,
+  skipPhase,
   tickPomodoro,
   togglePomodoro,
   type PomodoroState,
 } from "../lib/pomodoro";
+import {
+  FEED_COMBO_COUNT,
+  FEED_COMBO_WINDOW_MS,
+  greetPeriodForHour,
+  idleBubbleReason,
+  isWelcomeBack,
+  pickLine,
+  shouldEmitIdleBubble,
+  trayLabel,
+  type CompanionAction,
+} from "../lib/companionLines";
 import { tauriApi } from "../lib/tauriApi";
 import { startCurrentWindowDrag } from "../lib/tauriWindowApi";
 import type { AppConfig } from "../lib/types";
@@ -97,6 +109,7 @@ export default function PetWindow() {
   const applyPoseRef = useRef<(next: PetPoseId, sfx?: boolean) => void>(
     () => undefined,
   );
+  const companionActionRef = useRef<(action: CompanionAction) => void>(() => undefined);
   const cfgRef = useRef<AppConfig | null>(null);
   const activityRef = useRef<ActivitySnapshot | null>(null);
   const lastActivityKind = useRef<string>("");
@@ -104,7 +117,11 @@ export default function PetWindow() {
   const moodRef = useRef(64);
   const toastTimer = useRef(0);
   const lastPoseSfxAt = useRef(0);
-  const greetedMorning = useRef("");
+  const greetedKey = useRef("");
+  const lastBubbleAt = useRef(0);
+  const prevIdleMs = useRef(0);
+  const feedAtRef = useRef<number[]>([]);
+  const lastTrayLabel = useRef("");
 
   const showToast = (text: string, tone: PetToast["tone"] = "info") => {
     const next = makeToast(text, tone);
@@ -120,6 +137,7 @@ export default function PetWindow() {
     preloadPetPoses();
     lastIdleAtRef.current = Date.now();
     lifeAtRef.current = Date.now();
+    lastBubbleAt.current = Date.now();
     let disposed = false;
     const unlisteners: Array<() => void> = [];
 
@@ -234,6 +252,11 @@ export default function PetWindow() {
         const cfg = cfgRef.current;
         if (!cfg) return;
         const audio = audioSettingsOf(cfg);
+        if (next === "thinking" && cfg.moodMeterEnabled) {
+          const bumped = bumpMood(moodRef.current, "chat");
+          moodRef.current = bumped;
+          setMood(bumped);
+        }
         if (next === "success") {
           playSfx("message-received", audio);
           if (cfg.moodMeterEnabled) {
@@ -272,6 +295,68 @@ export default function PetWindow() {
         void tauriApi.emitPomodoroUpdated(pomoRef.current);
       })
       .then((fn) => unlisteners.push(fn));
+    void tauriApi
+      .listenPomodoroSkip(() => {
+        const cfg = cfgRef.current;
+        if (!cfg) return;
+        pomoRef.current = skipPhase(
+          pomoRef.current,
+          Date.now(),
+          pomodoroSettingsOf(cfg),
+        );
+        playSfx("pomodoro", audioSettingsOf(cfg));
+        showToast(pomoRef.current.phase === "focus" ? "进入专注" : "进入休息", "ok");
+        applyFromState();
+        void tauriApi.emitPomodoroUpdated(pomoRef.current);
+      })
+      .then((fn) => unlisteners.push(fn));
+
+    const speak = (reason: Parameters<typeof pickLine>[0], tick = 0, force = false) => {
+      if (!force && cfgRef.current?.companionBubbles === false) return;
+      showToast(pickLine(reason, tick));
+      lastBubbleAt.current = Date.now();
+    };
+
+    const runAction = (action: CompanionAction) => {
+      const cfg = cfgRef.current;
+      const now = Date.now();
+      if (!lockRef.current) {
+        manualHoldUntilRef.current = now + MANUAL_HOLD_MS;
+      }
+      if (action === "pat") {
+        applyPose(poseForPat(), false);
+        if (cfg) playSfx("pat", audioSettingsOf(cfg));
+        if (cfg?.moodMeterEnabled) {
+          const nextMood = bumpMood(moodRef.current, "pat");
+          moodRef.current = nextMood;
+          setMood(nextMood);
+        }
+        speak("pat", tickRef.current, true);
+        return;
+      }
+      if (action === "feed") {
+        feedAtRef.current = [
+          ...feedAtRef.current.filter((stamp) => now - stamp < FEED_COMBO_WINDOW_MS),
+          now,
+        ];
+        const full = feedAtRef.current.length >= FEED_COMBO_COUNT;
+        if (full) feedAtRef.current = [];
+        applyPose(full ? "celebrate" : poseForFeed(), false);
+        if (cfg) playSfx("feed", audioSettingsOf(cfg));
+        if (cfg?.moodMeterEnabled) {
+          const nextMood = bumpMood(moodRef.current, "feed");
+          moodRef.current = nextMood;
+          setMood(nextMood);
+        }
+        speak(full ? "full" : "feed", tickRef.current, true);
+        return;
+      }
+      applyPose("night", false);
+      speak("night", tickRef.current, true);
+    };
+    companionActionRef.current = runAction;
+
+    void tauriApi.listenCompanionAction(runAction).then((fn) => unlisteners.push(fn));
 
     const poll = window.setInterval(() => {
       if (disposed) return;
@@ -297,6 +382,15 @@ export default function PetWindow() {
       } else {
         setPomoLabel((current) => (current ? "" : current));
       }
+      const nextTray = trayLabel(
+        pomoRef.current.phase === "idle"
+          ? ""
+          : formatRemaining(remainingMs(pomoRef.current, now)),
+      );
+      if (nextTray !== lastTrayLabel.current) {
+        lastTrayLabel.current = nextTray;
+        void tauriApi.setTrayTooltip(nextTray);
+      }
 
       if (
         lifeRef.current === "streaming" &&
@@ -309,17 +403,35 @@ export default function PetWindow() {
         return;
       }
 
-      if (
-        cfg?.timeOfDayPoses &&
-        new Date().getHours() >= 6 &&
-        new Date().getHours() < 10
-      ) {
-        const today = new Date().toDateString();
-        if (greetedMorning.current !== today && lifeRef.current === "idle") {
-          greetedMorning.current = today;
-          applyPose("hug", true);
-          showToast("早上好，小元在呢");
+      if (cfg?.timeOfDayPoses) {
+        const hour = new Date().getHours();
+        const period = greetPeriodForHour(hour);
+        if (period && lifeRef.current === "idle") {
+          const key = `${period}:${new Date().toDateString()}`;
+          if (greetedKey.current !== key) {
+            greetedKey.current = key;
+            applyPose(period === "night" ? "night" : "hug", true);
+            speak(period, tickRef.current, true);
+          }
         }
+      }
+
+      if (
+        cfg?.companionBubbles !== false &&
+        lifeRef.current === "idle" &&
+        !lockRef.current &&
+        shouldEmitIdleBubble(now, lastBubbleAt.current)
+      ) {
+        lastBubbleAt.current = now;
+        speak(
+          idleBubbleReason({
+            mood: moodRef.current,
+            pomodoroPhase: pomoRef.current.phase,
+            activityKind: activityRef.current?.kind,
+            foreground: activityRef.current?.foreground?.category,
+          }),
+          tickRef.current,
+        );
       }
 
       if (cfg?.activityAware) {
@@ -330,13 +442,31 @@ export default function PetWindow() {
           })
           .then((snap) => {
             if (disposed) return;
+            const previousIdle = prevIdleMs.current;
+            prevIdleMs.current = snap.idleMs;
             activityRef.current = snap;
             if (cfg.moodMeterEnabled) {
-              const nextMood = decayMood(moodRef.current, snap.idleMs);
+              let nextMood = decayMood(moodRef.current, snap.idleMs);
+              if (
+                isWelcomeBack(
+                  previousIdle,
+                  snap.idleMs,
+                  cfg.longIdleThresholdSec * 1000,
+                )
+              ) {
+                nextMood = bumpMood(nextMood, "return");
+                applyPose("hug", true);
+                speak("welcome-back", tickRef.current, true);
+              }
               if (nextMood !== moodRef.current) {
                 moodRef.current = nextMood;
                 setMood(nextMood);
               }
+            } else if (
+              isWelcomeBack(previousIdle, snap.idleMs, cfg.longIdleThresholdSec * 1000)
+            ) {
+              applyPose("hug", true);
+              speak("welcome-back", tickRef.current, true);
             }
             const signature = `${snap.kind}:${snap.source}:${snap.foreground?.category ?? ""}`;
             if (
@@ -510,6 +640,7 @@ export default function PetWindow() {
           decoding="async"
         />
         {hovered ? <div className="pet-sparkle" aria-hidden /> : null}
+        {frontId === "night" ? <div className="pet-zzz" aria-hidden /> : null}
       </div>
       {moodEnabled ? (
         <div className="pet-mood" title={moodLabelZh(mood)}>
@@ -537,8 +668,7 @@ export default function PetWindow() {
             type="button"
             onClick={() => {
               setMenuOpen(false);
-              holdAndPose(poseForPat(), "pat");
-              bump("pat");
+              companionActionRef.current("pat");
             }}
           >
             拍一拍
@@ -547,11 +677,19 @@ export default function PetWindow() {
             type="button"
             onClick={() => {
               setMenuOpen(false);
-              holdAndPose(poseForFeed(), "feed");
-              bump("feed");
+              companionActionRef.current("feed");
             }}
           >
             喂食
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen(false);
+              companionActionRef.current("night");
+            }}
+          >
+            晚安
           </button>
           <button
             type="button"

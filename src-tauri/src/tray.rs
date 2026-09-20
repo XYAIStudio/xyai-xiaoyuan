@@ -12,6 +12,10 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let open_chat = MenuItem::with_id(app, "open_chat", "打开对话", true, None::<&str>)?;
     let open_home = MenuItem::with_id(app, "open_home", "打开主页", true, None::<&str>)?;
     let pomodoro = MenuItem::with_id(app, "pomodoro", "番茄钟：开始/暂停", true, None::<&str>)?;
+    let skip_pomo =
+        MenuItem::with_id(app, "pomodoro_skip", "番茄钟：下一阶段", true, None::<&str>)?;
+    let pat = MenuItem::with_id(app, "pat", "拍一拍", true, None::<&str>)?;
+    let feed = MenuItem::with_id(app, "feed", "喂食", true, None::<&str>)?;
     let click_through =
         MenuItem::with_id(app, "click_through", "切换点击穿透", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
@@ -24,6 +28,9 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             &open_chat,
             &open_home,
             &pomodoro,
+            &skip_pomo,
+            &pat,
+            &feed,
             &click_through,
             &settings,
             &check_updates,
@@ -35,7 +42,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         Image::from_bytes(include_bytes!("../icons/tray.png")).expect("tray icon")
     });
 
-    TrayIconBuilder::new()
+    TrayIconBuilder::with_id("main")
         .icon(icon)
         .menu(&menu)
         .show_menu_on_left_click(false)
@@ -52,6 +59,15 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             }
             "pomodoro" => {
                 let _ = app.emit("pomodoro-toggle", ());
+            }
+            "pomodoro_skip" => {
+                let _ = app.emit("pomodoro-skip", ());
+            }
+            "pat" => {
+                let _ = app.emit("companion-action", "pat");
+            }
+            "feed" => {
+                let _ = app.emit("companion-action", "feed");
             }
             "click_through" => {
                 let _ = window_cmd::toggle_click_through(app.clone());

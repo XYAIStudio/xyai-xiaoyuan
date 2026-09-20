@@ -11,6 +11,14 @@ import {
   tickPomodoro,
   togglePomodoro,
 } from "./pomodoro";
+import {
+  companionActionFromText,
+  greetPeriodForHour,
+  idleBubbleReason,
+  isWelcomeBack,
+  pickLine,
+  trayLabel,
+} from "./companionLines";
 import { dayPeriodFromHour } from "./timeOfDay";
 import {
   isDragFromDelta,
@@ -91,6 +99,7 @@ describe("mood meter", () => {
     expect(decayMood(64, 10_000)).toBe(64);
     expect(decayMood(64, 50_000)).toBe(63);
     expect(bumpMood(64, "pat")).toBe(74);
+    expect(bumpMood(50, "return")).toBe(64);
     expect(clampMood(200)).toBe(100);
     expect(moodLabelZh(90)).toBe("元气满满");
     expect(moodLabelZh(20)).toBe("想休息");
@@ -126,6 +135,30 @@ function remainingFor(state: ReturnType<typeof startFocus>, now: number): number
   return Math.max(0, (state.endsAt ?? 0) - now);
 }
 
+describe("companion lines and toys", () => {
+  it("maps chat shorthand onto companion actions", () => {
+    expect(companionActionFromText("拍一拍")).toBe("pat");
+    expect(companionActionFromText("/feed")).toBe("feed");
+    expect(companionActionFromText("晚安")).toBe("night");
+    expect(companionActionFromText("开始专注")).toBe("pomodoro");
+    expect(companionActionFromText("跳过")).toBe("skip");
+    expect(companionActionFromText("普通一句话")).toBeNull();
+  });
+
+  it("picks greetings, welcome-back, and idle reasons", () => {
+    expect(greetPeriodForHour(8)).toBe("morning");
+    expect(greetPeriodForHour(15)).toBeNull();
+    expect(isWelcomeBack(500_000, 200, 420_000)).toBe(true);
+    expect(isWelcomeBack(1_000, 200, 420_000)).toBe(false);
+    expect(idleBubbleReason({ mood: 20 })).toBe("low-mood");
+    expect(idleBubbleReason({ mood: 80, pomodoroPhase: "focus" })).toBe("focus");
+    expect(idleBubbleReason({ mood: 80, foreground: "meeting" })).toBe("meeting");
+    expect(pickLine("pat", 0)).toBe("嘿嘿");
+    expect(trayLabel("12:00")).toBe("小元 · 12:00");
+    expect(trayLabel("")).toBe("XYAI精灵小元");
+  });
+});
+
 describe("time of day and click toys", () => {
   it("buckets local hours", () => {
     expect(dayPeriodFromHour(7)).toBe("morning");
@@ -150,6 +183,8 @@ describe("config companion defaults", () => {
     expect(DEFAULT_APP_CONFIG.sfxEnabled).toBe(true);
     expect(DEFAULT_APP_CONFIG.foregroundHints).toBe(false);
     expect(DEFAULT_APP_CONFIG.screenUnderstanding).toBe(false);
+    expect(DEFAULT_APP_CONFIG.companionBubbles).toBe(true);
+    expect(DEFAULT_APP_CONFIG.shortcutPat).toBe("CmdOrCtrl+Shift+K");
     const loaded = normalizeLoadedConfig({
       idleThresholdSec: 3,
       petOpacity: 9,

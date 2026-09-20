@@ -79,6 +79,8 @@ export interface AppConfig {
 
   moodMeterEnabled: boolean;
   moodEnergy: number;
+  /** Occasional speech bubbles beside the pet. Default on. */
+  companionBubbles: boolean;
 
   /**
    * Future screenshot/OCR module. Persisted but inert — never captures in this build.
@@ -88,6 +90,7 @@ export interface AppConfig {
   shortcutOpenChat: string;
   shortcutToggleClickThrough: string;
   shortcutPomodoro: string;
+  shortcutPat: string;
 }
 
 export interface AgentSummary {

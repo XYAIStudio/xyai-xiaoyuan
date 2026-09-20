@@ -41,7 +41,18 @@
 
 `playSfx(name)` / `setMusic(on)` 在关闭、安静时段或文件缺失时直接返回，不会抛错。
 
-预定 cue：`pose-change`、`message-received`、`idle`、`pat`、`feed`、`pomodoro`、`error`。不要往仓库提交受版权保护的音乐。
+预定 cue：`pose-change`、`message-received`、`idle`、`pat`、`feed`、`pomodoro`、`error`、`hover`。不要往仓库提交受版权保护的音乐。
+
+## 陪伴气泡
+
+桌宠旁短气泡（不是系统通知）：
+
+- 清晨 / 傍晚 / 夜间各问候一次
+- 长空闲后回到键盘前：「欢迎回来」
+- 空闲时偶尔说一句（可在设置关闭）
+- 拍一拍 / 喂食 / 番茄钟阶段切换
+
+对话里可直接发「拍一拍」「喂食」「晚安」「开始专注」「跳过」，或点输入框上方的快捷筹码。连续喂食三次会「吃饱啦」。
 
 ## 明确以后再做
 

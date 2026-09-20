@@ -11,6 +11,7 @@ import {
 import { DEFAULT_APP_CONFIG, normalizeLoadedConfig } from "./configLogic";
 import type { PetPoseId } from "./mascots";
 import { makeToast, type PetToast, type ToastTone } from "./notifications";
+import type { CompanionAction } from "./companionLines";
 import type { AppConfig } from "./types";
 
 const STORAGE_KEY = "xyai-xiaoyuan-config";
@@ -168,6 +169,14 @@ export const tauriApi = {
       return false;
     }
   },
+  setTrayTooltip: async (text: string) => {
+    if (!isTauri()) return;
+    try {
+      await invoke("set_tray_tooltip", { text });
+    } catch {
+      /* tray may be missing in tests */
+    }
+  },
   getActivitySnapshot: async (
     options: { includeForeground?: boolean; idleThresholdMs?: number } = {},
   ): Promise<ActivitySnapshot> => {
@@ -227,8 +236,16 @@ export const tauriApi = {
   emitPomodoroToggle: () => emitEvent("pomodoro-toggle"),
   listenPomodoroToggle: (handler: () => void) =>
     listenEvent("pomodoro-toggle", handler),
+  emitPomodoroSkip: () => emitEvent("pomodoro-skip"),
+  listenPomodoroSkip: (handler: () => void) => listenEvent("pomodoro-skip", handler),
   emitPomodoroUpdated: (payload: unknown) => emitEvent("pomodoro-updated", payload),
   listenPomodoroUpdated: <T>(handler: (payload: T) => void) =>
     listenEvent<T>("pomodoro-updated", handler),
+  emitCompanionAction: (action: CompanionAction) =>
+    emitEvent("companion-action", action),
+  listenCompanionAction: (handler: (action: CompanionAction) => void) =>
+    listenEvent<CompanionAction>("companion-action", (raw) => {
+      if (raw === "pat" || raw === "feed" || raw === "night") handler(raw);
+    }),
   activityPollMs: ACTIVITY_POLL_MS,
 };

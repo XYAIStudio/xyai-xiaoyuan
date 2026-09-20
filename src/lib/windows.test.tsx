@@ -42,7 +42,12 @@ vi.mock("./tauriApi", async () => {
       listenPomodoroToggle: vi.fn(async () => () => undefined),
       emitPomodoroUpdated: vi.fn(async () => undefined),
       emitPomodoroToggle: vi.fn(async () => undefined),
+      emitPomodoroSkip: vi.fn(async () => undefined),
+      listenPomodoroSkip: vi.fn(async () => () => undefined),
       listenPomodoroUpdated: vi.fn(async () => () => undefined),
+      emitCompanionAction: vi.fn(async () => undefined),
+      listenCompanionAction: vi.fn(async () => () => undefined),
+      setTrayTooltip: vi.fn(async () => undefined),
       emitPetToast: vi.fn(async () => undefined),
       importGatewayJson: vi.fn(),
     },
@@ -73,6 +78,7 @@ describe("PetWindow", () => {
     expect(screen.getByRole("button", { name: "锁定姿态" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "拍一拍" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "喂食" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "晚安" })).toBeInTheDocument();
   });
 
   it("cycles a playful pose on click without opening chat", async () => {
@@ -117,6 +123,9 @@ describe("SettingsWindow", () => {
     expect(screen.getByLabelText("开启声音（总开关，默认关闭）")).not.toBeChecked();
     expect(screen.getByLabelText("音效")).toBeChecked();
     expect(
+      screen.getByLabelText("偶尔说一句（空闲气泡，打招呼仍会显示）"),
+    ).toBeChecked();
+    expect(
       screen.getByLabelText("理解屏幕内容（实验，默认关闭，本版本不会截屏）"),
     ).toBeDisabled();
   });
@@ -130,6 +139,7 @@ describe("SettingsWindow", () => {
     expect(screen.getByLabelText("番茄钟开始/暂停")).toHaveValue(
       DEFAULT_APP_CONFIG.shortcutPomodoro,
     );
+    expect(screen.getByLabelText("拍一拍")).toHaveValue(DEFAULT_APP_CONFIG.shortcutPat);
   });
 
   it("shows version and update check on the about tab", async () => {

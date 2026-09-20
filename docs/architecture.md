@@ -13,6 +13,7 @@
 | `src/lib/poseMachine.ts`              | 姿态状态机（含活动 / 番茄钟 / 时段）         |
 | `src/lib/activity.ts`                 | 空闲分类、前台应用粗分类                     |
 | `src/lib/audio.ts`                    | `playSfx` / 安静时段                         |
+| `src/lib/companionLines.ts`           | 气泡文案、口令、欢迎回来                     |
 | `src/lib/pomodoro.ts` / `mood.ts`     | 番茄钟与心情能量                             |
 | `src/lib/mascots.ts`                  | 16 官方造型目录与预加载                      |
 | `src/lib/updates.ts`                  | 检查 / 安装更新                              |
@@ -71,7 +72,7 @@
 | `activity_cmd.rs` | 上次输入、Windows 前台窗口粗分类                  |
 | `secrets_cmd.rs`  | 发布构建走系统钥匙串；debug 写 `dev-secrets.json` |
 | `window_cmd.rs`   | 显示 / 拖动 / 边缘吸附 / 开机启动 / 点击穿透      |
-| `tray.rs`         | 托盘：打开对话、番茄钟、点击穿透、设置、检查更新  |
+| `tray.rs`         | 托盘：对话、番茄钟、拍一拍/喂食、点击穿透、设置   |
 
 前端通过 `src/lib/tauriApi.ts` 调用。非 Tauri 环境（浏览器预览）走内存实现。
 

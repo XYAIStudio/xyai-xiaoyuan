@@ -76,6 +76,7 @@ fn config_patch_and_defaults() {
     assert_eq!(loaded.mascot_id, "wave");
     assert!(!loaded.lock_pose);
     assert!(loaded.activity_aware);
+    assert!(loaded.companion_bubbles);
     assert!(!loaded.sound_enabled);
     assert!(loaded.sfx_enabled);
     assert_eq!(loaded.idle_threshold_sec, 50);

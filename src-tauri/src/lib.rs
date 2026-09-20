@@ -43,6 +43,7 @@ pub fn run() {
             window_cmd::toggle_click_through,
             window_cmd::set_autostart,
             window_cmd::is_autostart,
+            window_cmd::set_tray_tooltip,
             activity_cmd::get_activity_snapshot,
         ])
         .setup(|app| {

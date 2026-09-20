@@ -552,6 +552,16 @@ export default function SettingsWindow() {
               />
               心情能量条（空闲下降，互动/对话回升）
             </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.companionBubbles}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, companionBubbles: event.target.checked }))
+                }
+              />
+              偶尔说一句（空闲气泡，打招呼仍会显示）
+            </label>
           </fieldset>
           <fieldset className="settings-fieldset">
             <legend>声音</legend>
@@ -755,6 +765,15 @@ export default function SettingsWindow() {
               value={cfg.shortcutPomodoro}
               onChange={(event) =>
                 setCfg((c) => ({ ...c, shortcutPomodoro: event.target.value }))
+              }
+            />
+          </label>
+          <label>
+            拍一拍
+            <input
+              value={cfg.shortcutPat}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, shortcutPat: event.target.value }))
               }
             />
           </label>

@@ -66,6 +66,35 @@
   }
 }
 
+.pet-zzz {
+  position: absolute;
+  top: 8%;
+  right: 14%;
+  z-index: 4;
+  pointer-events: none;
+  font-size: 14px;
+  color: rgba(210, 235, 255, 0.92);
+  text-shadow: 0 0 8px rgba(80, 180, 255, 0.55);
+  animation: pet-zzz 1.8s ease-in-out infinite;
+}
+
+.pet-zzz::before {
+  content: "z z z";
+  letter-spacing: 1px;
+}
+
+@keyframes pet-zzz {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
 .pet-sparkle {
   position: absolute;
   inset: 12%;
@@ -156,7 +185,8 @@
     transition: none;
   }
   .pet-root.is-wiggling .pet-stage,
-  .pet-sparkle {
+  .pet-sparkle,
+  .pet-zzz {
     animation: none;
   }
 }

@@ -2,7 +2,8 @@ export const MOOD_DEFAULT = 64;
 export const MOOD_MIN = 0;
 export const MOOD_MAX = 100;
 
-export type MoodReason = "click" | "chat" | "pat" | "feed" | "hover" | "success";
+export type MoodReason =
+  "click" | "chat" | "pat" | "feed" | "hover" | "success" | "return";
 
 const BUMPS: Record<MoodReason, number> = {
   click: 4,
@@ -11,6 +12,7 @@ const BUMPS: Record<MoodReason, number> = {
   feed: 12,
   hover: 1,
   success: 6,
+  return: 14,
 };
 
 export function clampMood(value: number): number {

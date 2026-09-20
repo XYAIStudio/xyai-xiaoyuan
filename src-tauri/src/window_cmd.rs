@@ -332,6 +332,27 @@ pub fn reload_hotkeys(app: AppHandle) -> Result<(), String> {
             })
             .map_err(|error| format!("注册「番茄钟」快捷键失败: {error}"))?;
     }
+    let pat_shortcut = cfg.shortcut_pat.clone();
+    if !pat_shortcut.trim().is_empty() {
+        let handle = app.clone();
+        app.global_shortcut()
+            .on_shortcut(pat_shortcut.as_str(), move |_, _, event| {
+                if event.state == ShortcutState::Pressed {
+                    let _ = handle.emit("companion-action", "pat");
+                }
+            })
+            .map_err(|error| format!("注册「拍一拍」快捷键失败: {error}"))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_tray_tooltip(app: AppHandle, text: String) -> Result<(), String> {
+    let clipped: String = text.chars().take(80).collect();
+    if let Some(icon) = app.tray_by_id("main") {
+        icon.set_tooltip(Some(&clipped))
+            .map_err(|error| format!("tray tooltip: {error}"))?;
+    }
     Ok(())
 }
 

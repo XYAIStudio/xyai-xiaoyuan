@@ -103,10 +103,12 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   pomodoroLongBreakMin: 15,
   moodMeterEnabled: true,
   moodEnergy: MOOD_DEFAULT,
+  companionBubbles: true,
   screenUnderstanding: false,
   shortcutOpenChat: "CmdOrCtrl+Shift+C",
   shortcutToggleClickThrough: "CmdOrCtrl+Shift+T",
   shortcutPomodoro: "CmdOrCtrl+Shift+P",
+  shortcutPat: "CmdOrCtrl+Shift+K",
 };
 
 export function normalizeLoadedConfig(
@@ -167,6 +169,7 @@ export function normalizeLoadedConfig(
   merged.pomodoroLongBreakMin = clampMinutes(merged.pomodoroLongBreakMin, 15);
   merged.moodMeterEnabled = asBool(merged.moodMeterEnabled, true);
   merged.moodEnergy = clampMood(merged.moodEnergy);
+  merged.companionBubbles = asBool(merged.companionBubbles, true);
   merged.screenUnderstanding = asBool(merged.screenUnderstanding, false);
   merged.shortcutOpenPet = asString(merged.shortcutOpenPet, "CmdOrCtrl+Shift+Y");
   merged.shortcutOpenHome = asString(merged.shortcutOpenHome, "CmdOrCtrl+Shift+H");
@@ -176,6 +179,7 @@ export function normalizeLoadedConfig(
     "CmdOrCtrl+Shift+T",
   );
   merged.shortcutPomodoro = asString(merged.shortcutPomodoro, "CmdOrCtrl+Shift+P");
+  merged.shortcutPat = asString(merged.shortcutPat, "CmdOrCtrl+Shift+K");
   merged.keepWindowsVisible = asBool(merged.keepWindowsVisible, true);
   return merged;
 }

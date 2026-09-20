@@ -136,10 +136,12 @@ pub struct AppConfig {
     pub pomodoro_long_break_min: u32,
     pub mood_meter_enabled: bool,
     pub mood_energy: u32,
+    pub companion_bubbles: bool,
     pub screen_understanding: bool,
     pub shortcut_open_chat: String,
     pub shortcut_toggle_click_through: String,
     pub shortcut_pomodoro: String,
+    pub shortcut_pat: String,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -192,10 +194,12 @@ impl Default for AppConfig {
             pomodoro_long_break_min: 15,
             mood_meter_enabled: true,
             mood_energy: 64,
+            companion_bubbles: true,
             screen_understanding: false,
             shortcut_open_chat: "CmdOrCtrl+Shift+C".into(),
             shortcut_toggle_click_through: "CmdOrCtrl+Shift+T".into(),
             shortcut_pomodoro: "CmdOrCtrl+Shift+P".into(),
+            shortcut_pat: "CmdOrCtrl+Shift+K".into(),
         }
     }
 }
@@ -376,12 +380,14 @@ fn merge_patch(cfg: &mut AppConfig, patch: Value) -> Result<(), String> {
                 let n: u32 = patch_field(key, value.clone())?;
                 cfg.mood_energy = clamp_u32(n, 0, 100);
             }
+            "companionBubbles" => cfg.companion_bubbles = patch_field(key, value.clone())?,
             "screenUnderstanding" => cfg.screen_understanding = patch_field(key, value.clone())?,
             "shortcutOpenChat" => cfg.shortcut_open_chat = patch_field(key, value.clone())?,
             "shortcutToggleClickThrough" => {
                 cfg.shortcut_toggle_click_through = patch_field(key, value.clone())?
             }
             "shortcutPomodoro" => cfg.shortcut_pomodoro = patch_field(key, value.clone())?,
+            "shortcutPat" => cfg.shortcut_pat = patch_field(key, value.clone())?,
             _ => return Err(format!("unsupported config field: {key}")),
         }
     }
