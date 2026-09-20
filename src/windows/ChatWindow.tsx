@@ -57,7 +57,7 @@ export default function ChatWindow() {
       <div className="chat-body">
         {chat.needsSettings ? (
           <p className="chat-empty">
-            请先在设置中选择 XYAI Studio 后端并测试连接。
+            请先在设置中选择后端并测试连接。
             <button type="button" onClick={() => void tauriApi.showSettings()}>
               打开设置
             </button>
