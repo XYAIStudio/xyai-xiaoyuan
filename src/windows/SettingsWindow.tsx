@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { DEFAULT_APP_CONFIG, normalizeLoadedConfig } from "../lib/configLogic";
 import { PET_POSE_LIST, type PetPoseId } from "../lib/mascots";
@@ -7,8 +7,15 @@ import type { ProviderId } from "../lib/providers/types";
 import { tauriApi } from "../lib/tauriApi";
 import { hideCurrentWindow } from "../lib/tauriWindowApi";
 import type { AppConfig } from "../lib/types";
+import {
+  APP_VERSION,
+  checkAppUpdate,
+  installAppUpdate,
+  readAppVersion,
+  type UpdateCheckResult,
+} from "../lib/updates";
 
-type Tab = "backend" | "pet" | "shortcuts";
+type Tab = "backend" | "pet" | "shortcuts" | "about";
 
 export default function SettingsWindow() {
   const [cfg, setCfg] = useState<AppConfig>(DEFAULT_APP_CONFIG);
@@ -17,9 +24,48 @@ export default function SettingsWindow() {
   const [token, setToken] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [version, setVersion] = useState(APP_VERSION);
+  const [update, setUpdate] = useState<UpdateCheckResult>({
+    status: "idle",
+    version: APP_VERSION,
+  });
+
+  const runUpdateCheck = async () => {
+    setBusy(true);
+    setUpdate({ status: "idle", version });
+    try {
+      const result = await checkAppUpdate();
+      setUpdate(result);
+      if (result.status === "available") {
+        setStatus(`发现新版本 ${result.version}`);
+      } else if (result.status === "current") {
+        setStatus(`已是最新版 ${result.version}`);
+      } else if (result.status === "desktop-only") {
+        setStatus("检查更新仅在桌面客户端可用（npm run tauri dev / 安装包）");
+      } else if (result.status === "error") {
+        setStatus(result.message);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runUpdateCheckRef = useRef(runUpdateCheck);
+  runUpdateCheckRef.current = runUpdateCheck;
 
   useEffect(() => {
     void tauriApi.loadConfig().then(setCfg);
+    void readAppVersion().then(setVersion);
+    let unlisten: (() => void) | undefined;
+    void tauriApi
+      .listenCheckUpdates(() => {
+        setTab("about");
+        void runUpdateCheckRef.current();
+      })
+      .then((fn) => {
+        unlisten = fn;
+      });
+    return () => unlisten?.();
   }, []);
 
   const provider = getProvider(cfg.providerId);
@@ -96,6 +142,7 @@ export default function SettingsWindow() {
             ["backend", "后端"],
             ["pet", "桌宠"],
             ["shortcuts", "快捷键"],
+            ["about", "关于"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -133,7 +180,9 @@ export default function SettingsWindow() {
           </label>
           <p className="settings-note">
             小元可对接 XYAI Studio 组织下的独立产品（FreeOS、openXYOS、XYAI Studio
-            工作台等），以及额外的本机 Grok Bot 网关。切换后端不会改动桌宠与对话界面。
+            工作台等），以及额外的本机 Grok Bot
+            网关。切换后端不会改动桌宠与对话界面。没有本机服务时，可先跑{" "}
+            <code>npm run mock:backends</code>，再把地址改成 18088 / 13000 / 11340。
           </p>
           {!provider.ready ? (
             <p className="settings-note">{provider.notReadyReason}</p>
@@ -389,6 +438,40 @@ export default function SettingsWindow() {
               保存
             </button>
           </div>
+        </section>
+      ) : null}
+      {tab === "about" ? (
+        <section className="settings-body">
+          <p className="settings-note">
+            XYAI精灵小元 {version} ·
+            官方桌面伴侣。本机始终置顶，对话走你在「后端」里选择的 XYAIStudio 产品。
+          </p>
+          <p className="settings-note">
+            更新源：GitHub Releases 的 <code>latest.json</code>
+            。首次公开发布前请自行生成签名密钥并写入仓库 Secrets（见 README）。
+          </p>
+          <div className="settings-actions">
+            <button type="button" disabled={busy} onClick={() => void runUpdateCheck()}>
+              检查更新
+            </button>
+            {update.status === "available" ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  void installAppUpdate().catch((error) => {
+                    setStatus(error instanceof Error ? error.message : "安装更新失败");
+                  });
+                }}
+              >
+                下载并安装 {update.version}
+              </button>
+            ) : null}
+          </div>
+          {update.status === "current" ? (
+            <p className="settings-status">当前 {update.version} 已是最新。</p>
+          ) : null}
+          {status ? <p className="settings-status">{status}</p> : null}
         </section>
       ) : null}
     </div>

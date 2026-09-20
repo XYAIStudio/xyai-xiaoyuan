@@ -1,0 +1,51 @@
+name: Windows installers
+
+on:
+  pull_request:
+  push:
+    branches: [main, "cursor/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.88.0
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Build NSIS and MSI
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          EXTRA=()
+          if [ -z "${TAURI_SIGNING_PRIVATE_KEY}" ]; then
+            echo "No TAURI_SIGNING_PRIVATE_KEY secret; building unsigned installers (no updater artifacts)."
+            EXTRA+=(--config '{"bundle":{"createUpdaterArtifacts":false}}')
+          fi
+          npx tauri build --bundles nsis,msi "${EXTRA[@]}"
+
+      - name: Upload Windows installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: xyai-xiaoyuan-windows-x64
+          if-no-files-found: error
+          path: |
+            src-tauri/target/release/bundle/nsis/*
+            src-tauri/target/release/bundle/msi/*

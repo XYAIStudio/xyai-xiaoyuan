@@ -2,17 +2,29 @@ use tauri::{
     image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager,
+    AppHandle, Emitter, Manager,
 };
 
 use crate::window_cmd;
 
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let open_pet = MenuItem::with_id(app, "open_pet", "打开小元", true, None::<&str>)?;
+    let open_chat = MenuItem::with_id(app, "open_chat", "打开对话", true, None::<&str>)?;
     let open_home = MenuItem::with_id(app, "open_home", "打开主页", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
+    let check_updates = MenuItem::with_id(app, "check_updates", "检查更新", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&open_pet, &open_home, &settings, &quit])?;
+    let menu = Menu::with_items(
+        app,
+        &[
+            &open_pet,
+            &open_chat,
+            &open_home,
+            &settings,
+            &check_updates,
+            &quit,
+        ],
+    )?;
 
     let icon = app.default_window_icon().cloned().unwrap_or_else(|| {
         Image::from_bytes(include_bytes!("../icons/tray.png")).expect("tray icon")
@@ -27,11 +39,18 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             "open_pet" => {
                 let _ = window_cmd::show_pet(app.clone());
             }
+            "open_chat" => {
+                let _ = window_cmd::show_chat_near_pet(app.clone());
+            }
             "open_home" => {
                 let _ = window_cmd::open_home(app.clone(), None);
             }
             "settings" => {
                 let _ = window_cmd::show_settings(app.clone());
+            }
+            "check_updates" => {
+                let _ = window_cmd::show_settings(app.clone());
+                let _ = app.emit("check-updates", ());
             }
             "quit" => window_cmd::quit_app(app.clone()),
             _ => {}

@@ -27,4 +27,11 @@ const cargo = readFileSync(cargoPath, "utf8").replace(
   `version = "${version}"`,
 );
 writeFileSync(cargoPath, cargo);
+
+const updatesPath = resolve("src/lib/updates.ts");
+const updates = readFileSync(updatesPath, "utf8").replace(
+  /export const APP_VERSION = ".*";/,
+  `export const APP_VERSION = "${version}";`,
+);
+writeFileSync(updatesPath, updates);
 console.log(`Synced version to ${version}`);

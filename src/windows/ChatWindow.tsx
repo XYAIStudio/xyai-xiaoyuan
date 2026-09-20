@@ -67,7 +67,16 @@ export default function ChatWindow() {
             </button>
           </p>
         ) : null}
-        {chat.error ? <p className="chat-error">{chat.error}</p> : null}
+        {chat.error ? (
+          <p className="chat-error">
+            {chat.error}
+            {chat.connection === "disconnected" ? (
+              <button type="button" onClick={() => void chat.initialize()}>
+                重新连接
+              </button>
+            ) : null}
+          </p>
+        ) : null}
         {chat.messages.map((message) => (
           <article key={message.id} className={`bubble is-${message.role}`}>
             {message.role === "assistant" ? (

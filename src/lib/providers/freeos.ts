@@ -160,12 +160,21 @@ export const freeOsProvider: BackendProvider = {
   async sendChat(ctx, input: SendChatInput): Promise<SendChatHandle> {
     let socket: WebSocket | null = null;
     let cancelled = false;
+    let finished = false;
     const token = await withToken(ctx, async (t) => t);
     const wsUrl = buildWsUrl(ctx.baseUrl, input.agentId, token);
     input.onLifecycle?.("thinking");
 
     socket = new WebSocket(wsUrl);
+    const openTimer = window.setTimeout(() => {
+      if (cancelled || finished) return;
+      if (socket && socket.readyState !== WebSocket.OPEN) {
+        input.onError?.("WebSocket 连接超时，请确认 FreeOS 已启动");
+        socket.close();
+      }
+    }, 8_000);
     socket.onopen = () => {
+      window.clearTimeout(openTimer);
       if (cancelled) {
         socket?.close();
         return;
@@ -195,9 +204,12 @@ export const freeOsProvider: BackendProvider = {
         } else if (chunk.type === "tool_call_chunk") {
           input.onLifecycle?.("tool");
         } else if (chunk.type === "done") {
+          finished = true;
+          window.clearTimeout(openTimer);
           input.onDone?.(assembled);
           socket?.close();
         } else if (chunk.type === "error") {
+          finished = true;
           input.onError?.(chunk.message || "流式错误");
           socket?.close();
         }
@@ -207,17 +219,21 @@ export const freeOsProvider: BackendProvider = {
       }
     };
     socket.onerror = () => {
-      if (!cancelled) input.onError?.("WebSocket 连接失败");
+      if (!cancelled)
+        input.onError?.("WebSocket 连接失败，请确认 FreeOS 已启动或改用模拟后端");
     };
     socket.onclose = () => {
-      if (!cancelled && assembled) {
-        /* done already or connection dropped */
+      window.clearTimeout(openTimer);
+      if (!cancelled && !finished && !assembled) {
+        input.onError?.("对话连接已断开，请点击重新连接");
       }
     };
 
     return {
       cancel: () => {
         cancelled = true;
+        finished = true;
+        window.clearTimeout(openTimer);
         if (socket && socket.readyState === WebSocket.OPEN && input.threadId) {
           socket.send(JSON.stringify({ type: "cancel", thread_id: input.threadId }));
         }

@@ -81,6 +81,10 @@
   color: #ffb4b4;
 }
 
+.chat-error button {
+  margin-left: 8px;
+}
+
 .chat-close,
 .chat-header button,
 .chat-composer button,

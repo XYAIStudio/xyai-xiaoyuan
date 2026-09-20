@@ -25,7 +25,9 @@ help:
 	@echo "Development:"
 	@echo "  install          npm install"
 	@echo "  dev              npm run tauri dev"
+	@echo "  mock             npm run mock:backends"
 	@echo "  build            npm run tauri build"
+	@echo "  build-windows    print how to get NSIS/MSI from Actions"
 	@echo ""
 	@echo "Quality:"
 	@echo "  all              format + lint + typecheck + test"
@@ -43,9 +45,18 @@ install:
 dev:
 	npm run tauri dev
 
+.PHONY: mock
+mock:
+	npm run mock:backends
+
 .PHONY: build
 build:
 	npm run tauri build
+
+.PHONY: build-windows
+build-windows:
+	@echo "Windows NSIS/MSI 请在 windows-latest 上构建：见 .github/workflows/windows.yml"
+	@echo "本机若已安装 Windows 工具链：npx tauri build --bundles nsis,msi"
 
 .PHONY: test
 test:

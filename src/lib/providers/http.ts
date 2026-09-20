@@ -51,38 +51,62 @@ export function normalizeBaseUrl(raw: string): string {
 function networkError(error: unknown): Error {
   const message = error instanceof Error ? error.message : String(error);
   if (
-    /load failed|failed to fetch|networkerror|network request failed|error sending request|url not allowed/i.test(
+    /load failed|failed to fetch|networkerror|network request failed|error sending request|url not allowed|econnrefused|fetch failed/i.test(
       message,
     )
   ) {
     return new Error(
       message.includes("url not allowed")
         ? message
-        : "无法连接服务，请检查地址是否可访问",
+        : "无法连接服务，请检查地址是否可访问（本机后端需先启动，或运行 npm run mock:backends）",
     );
   }
   return error instanceof Error ? error : new Error(message);
 }
 
+export const DEFAULT_FETCH_TIMEOUT_MS = 15_000;
+
+function timeoutError(): Error {
+  return new Error("连接超时，请确认后端已启动且地址可访问");
+}
+
 export async function clientFetch(
   input: string,
-  init?: RequestInit,
+  init?: RequestInit & { timeoutMs?: number },
 ): Promise<Response> {
+  const timeoutMs = init?.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  if (init?.signal) {
+    if (init.signal.aborted) controller.abort();
+    else
+      init.signal.addEventListener("abort", () => controller.abort(), { once: true });
+  }
+  const { timeoutMs: _timeoutMs, signal: _signal, ...rest } = init ?? {};
   try {
+    const requestInit: RequestInit = { ...rest, signal: controller.signal };
     if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
       const { fetch: tauriFetch } = await import("@tauri-apps/plugin-http");
-      return await tauriFetch(input, init);
+      return await tauriFetch(input, requestInit);
     }
-    return await globalThis.fetch(input, init);
+    return await globalThis.fetch(input, requestInit);
   } catch (error) {
+    if (
+      (error instanceof DOMException && error.name === "AbortError") ||
+      (error instanceof Error && error.name === "AbortError")
+    ) {
+      throw timeoutError();
+    }
     throw networkError(error);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 export async function apiJson<T>(
   baseUrl: string,
   path: string,
-  init: RequestInit & { token?: string } = {},
+  init: RequestInit & { token?: string; timeoutMs?: number } = {},
 ): Promise<T> {
   const root = normalizeBaseUrl(baseUrl);
   const headers = new Headers(init.headers);

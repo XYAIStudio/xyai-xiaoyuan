@@ -43,7 +43,62 @@ npm run tauri dev
 
 质量检查：`make check`（前端 lint / `tsc` / Vitest，以及 `cargo test`）。提交前可 `make install-hooks`。
 
-全局快捷键默认：`CmdOrCtrl+Shift+Y` 显示小元，`CmdOrCtrl+Shift+H` 打开当前后端主页。左键点击桌宠打开对话，右键打开菜单（含 16 表情）。
+全局快捷键默认：`CmdOrCtrl+Shift+Y` 显示小元，`CmdOrCtrl+Shift+H` 打开当前后端主页。左键点击桌宠打开对话，右键打开菜单（含 16 表情与「锁定姿态」）。托盘可打开小元 / 对话 / 设置 / 检查更新。
+
+## 对接本机后端
+
+先启动对应产品，再在小元 **设置 → 后端** 填写地址并测试连接。密钥进系统钥匙串，不要写进 Git。
+
+| 后端        | 本机默认                | 设置里填什么                          |
+| ----------- | ----------------------- | ------------------------------------- |
+| FreeOS      | `http://127.0.0.1:8088` | 用户名 + 密码                         |
+| openXYOS    | `http://127.0.0.1:3000` | 邮箱 + 密码                           |
+| Grok Bot    | `http://127.0.0.1:1340` | Bearer 令牌，或从 `gateway.json` 导入 |
+| XYAI Studio | （无远程对话 API）      | 保持「未就绪」                        |
+
+## 没有真实后端时：模拟网关
+
+```bash
+npm run mock:backends
+```
+
+会在本机拉起三个模拟服务，用来预览对话流式输出和桌宠姿态，不必等 FreeOS：
+
+| 模拟服务 | 地址                     | 账号                               |
+| -------- | ------------------------ | ---------------------------------- |
+| FreeOS   | `http://127.0.0.1:18088` | `xiaoyuan` / `xiaoyuan`            |
+| openXYOS | `http://127.0.0.1:13000` | `xiaoyuan@xyai.local` / `xiaoyuan` |
+| Grok Bot | `http://127.0.0.1:11340` | 令牌 `mock-token`                  |
+
+另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。
+
+## Windows 安装包
+
+本仓库已配置 NSIS（`setup.exe`）与 MSI。Linux 云主机不能签出 Windows 安装包，请走 GitHub Actions：
+
+- PR / `cursor/**` 分支：工作流 **Windows installers**（`.github/workflows/windows.yml`）在 `windows-latest` 构建，产物在该 run 的 Artifacts 里，名称 `xyai-xiaoyuan-windows-x64`
+- 本机若已是 Windows：`npx tauri build --bundles nsis,msi`
+- 图标来自小元官方画（`src-tauri/icons/`，`assets/mascot/icon-source.png`）
+
+未配置更新签名密钥时，CI 仍会打出安装包，只是不含 updater 增量包。
+
+## 自动更新
+
+桌面端 **设置 → 关于 → 检查更新**，托盘也有同名项。更新源为：
+
+`https://github.com/XYAIStudio/xyai-xiaoyuan/releases/latest/download/latest.json`
+
+公开发布前请**自己生成**密钥（仓库里的 pubkey 仅作脚手架，私钥不会进 Git）：
+
+```bash
+npx tauri signer generate -w ~/.tauri/xyai-xiaoyuan.key
+```
+
+1. 把 `xyai-xiaoyuan.key.pub` 的内容贴进 `src-tauri/tauri.conf.json` 的 `plugins.updater.pubkey`（在首次给用户安装之前完成）。
+2. GitHub → Settings → Secrets 添加 `TAURI_SIGNING_PRIVATE_KEY`（私钥文件全文），可选 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`。
+3. 打 tag（`v0.1.1`）或手动跑 **Release** 工作流；`tauri-action` 会写 draft Release 并上传 `latest.json`。
+
+没有密钥时检查更新会提示尚未配置，不影响日常聊天。
 
 ## 小元 16 表情
 
@@ -100,3 +155,5 @@ npm run tauri dev
 ```
 
 Browser preview (no always-on-top chrome): `npm run dev`, then `http://localhost:1420/?window=pet`. Poses crossfade (~380ms) instead of hard-cutting; all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. A right-click or Settings pick holds until the next automatic state change; **锁定姿态** freezes the current pose.
+
+Without a live backend, `npm run mock:backends` serves FreeOS `:18088`, openXYOS `:13000`, and Grok Bot `:11340`. Windows NSIS/MSI installers are built on GitHub Actions (`windows-latest`); check the **Windows installers** workflow artifacts. Auto-update uses GitHub Releases `latest.json` — add `TAURI_SIGNING_PRIVATE_KEY` before the first public release (see the Chinese checklist).

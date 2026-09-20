@@ -15,6 +15,7 @@ import {
 import { getProvider } from "../lib/providers/registry";
 import type { ProviderId, ProviderContext } from "../lib/providers/types";
 import { poseHintFromUserText } from "../lib/poseMachine";
+import { withRetry } from "../lib/retry";
 import { tauriApi } from "../lib/tauriApi";
 import type { AgentSummary, AppConfig, ChatMessage } from "../lib/types";
 
@@ -134,7 +135,10 @@ export function useChatController() {
         emitLife("error");
         return;
       }
-      const available = await provider.listAgents(contextOf(cfg));
+      const available = await withRetry(() => provider.listAgents(contextOf(cfg)), {
+        attempts: 3,
+        delayMs: 400,
+      });
       if (seq !== loadSeq.current || !mounted.current) return;
       if (available.length === 0) {
         setError("没有可用智能体 / 会话");

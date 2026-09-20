@@ -65,6 +65,30 @@ describe("http helpers", () => {
     vi.stubGlobal("fetch", fetchMock);
     await apiJson("http://127.0.0.1:1340", "http://127.0.0.1:1340/health");
   });
+
+  it("times out hung requests", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn((_url: string, init?: RequestInit) => {
+          return new Promise((_, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              const error = new Error("Aborted");
+              error.name = "AbortError";
+              reject(error);
+            });
+          });
+        }),
+      );
+      const pending = apiJson("http://127.0.0.1:9", "/agents", { timeoutMs: 40 });
+      const expectation = expect(pending).rejects.toThrow(/超时/);
+      await vi.advanceTimersByTimeAsync(50);
+      await expectation;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("provider-specific helpers", () => {

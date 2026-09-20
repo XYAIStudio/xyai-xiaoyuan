@@ -7,9 +7,56 @@ import type { AppConfig } from "./types";
 
 const STORAGE_KEY = "xyai-xiaoyuan-config";
 const SECRET_PREFIX = "xyai-xiaoyuan-secret:";
+const BUS_NAME = "xyai-xiaoyuan";
 
 function isTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+let broadcast: BroadcastChannel | null = null;
+
+function bus(): BroadcastChannel | null {
+  if (typeof BroadcastChannel === "undefined") return null;
+  if (!broadcast) broadcast = new BroadcastChannel(BUS_NAME);
+  return broadcast;
+}
+
+function emitLocal(name: string, payload?: unknown): Promise<void> {
+  window.dispatchEvent(new CustomEvent(`xyai:${name}`, { detail: payload }));
+  bus()?.postMessage({ name, payload });
+  return Promise.resolve();
+}
+
+function listenLocal<T>(
+  name: string,
+  handler: (payload: T) => void,
+): Promise<() => void> {
+  const local = (event: Event) => handler((event as CustomEvent).detail as T);
+  window.addEventListener(`xyai:${name}`, local);
+  const channel = bus();
+  const remote = (event: MessageEvent) => {
+    if (event.data?.name === name) handler(event.data.payload as T);
+  };
+  channel?.addEventListener("message", remote);
+  return Promise.resolve(() => {
+    window.removeEventListener(`xyai:${name}`, local);
+    channel?.removeEventListener("message", remote);
+  });
+}
+
+function emitEvent(name: string, payload?: unknown): Promise<void> {
+  if (!isTauri()) return emitLocal(name, payload);
+  return emit(name, payload);
+}
+
+function listenEvent<T>(
+  name: string,
+  handler: (payload: T) => void,
+): Promise<() => void> {
+  if (!isTauri()) return listenLocal(name, handler);
+  return listen<T>(name, ({ payload }) => handler(payload)).then((unlisten) => () => {
+    unlisten();
+  });
 }
 
 const memorySecrets = new Map<string, string>();
@@ -89,15 +136,16 @@ export const tauriApi = {
     isTauri()
       ? invoke<{ baseUrl: string; hasToken: boolean }>("import_gateway_json", { path })
       : Promise.reject(new Error("仅桌面端可读取 gateway.json")),
-  emitAuthUpdated: () => emit("auth-updated"),
-  listenAuthUpdated: (handler: () => void) => listen("auth-updated", handler),
-  listenChatShown: (handler: () => void) => listen("chat-shown", handler),
-  emitMascotChanged: (mascotId: PetPoseId) => emit("mascot-changed", mascotId),
+  emitAuthUpdated: () => emitEvent("auth-updated"),
+  listenAuthUpdated: (handler: () => void) => listenEvent("auth-updated", handler),
+  listenChatShown: (handler: () => void) => listenEvent("chat-shown", handler),
+  emitMascotChanged: (mascotId: PetPoseId) => emitEvent("mascot-changed", mascotId),
   listenMascotChanged: (handler: (mascotId: PetPoseId) => void) =>
-    listen<PetPoseId>("mascot-changed", ({ payload }) => handler(payload)),
-  emitPetLifecycle: (life: string) => emit("pet-lifecycle", life),
+    listenEvent<PetPoseId>("mascot-changed", handler),
+  emitPetLifecycle: (life: string) => emitEvent("pet-lifecycle", life),
   listenPetLifecycle: (handler: (life: string) => void) =>
-    listen<string>("pet-lifecycle", ({ payload }) => handler(payload)),
-  emitConfigUpdated: () => emit("config-updated"),
-  listenConfigUpdated: (handler: () => void) => listen("config-updated", handler),
+    listenEvent<string>("pet-lifecycle", handler),
+  emitConfigUpdated: () => emitEvent("config-updated"),
+  listenConfigUpdated: (handler: () => void) => listenEvent("config-updated", handler),
+  listenCheckUpdates: (handler: () => void) => listenEvent("check-updates", handler),
 };

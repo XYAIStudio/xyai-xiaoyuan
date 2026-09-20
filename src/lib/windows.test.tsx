@@ -42,6 +42,7 @@ vi.mock("./tauriApi", () => {
       listenPetLifecycle: vi.fn(async () => () => undefined),
       emitConfigUpdated: vi.fn(async () => undefined),
       listenConfigUpdated: vi.fn(async () => () => undefined),
+      listenCheckUpdates: vi.fn(async () => () => undefined),
       importGatewayJson: vi.fn(),
     },
   };
@@ -91,5 +92,12 @@ describe("SettingsWindow", () => {
     fireEvent.click(await screen.findByRole("button", { name: "桌宠" }));
     expect(screen.getByLabelText("根据对话状态自动切换表情")).toBeChecked();
     expect(screen.getByLabelText("锁定姿态")).not.toBeChecked();
+  });
+
+  it("shows version and update check on the about tab", async () => {
+    render(<SettingsWindow />);
+    fireEvent.click(await screen.findByRole("button", { name: "关于" }));
+    expect(await screen.findByRole("button", { name: "检查更新" })).toBeInTheDocument();
+    expect(screen.getByText(/XYAI精灵小元 0\.1\.0/)).toBeInTheDocument();
   });
 });
