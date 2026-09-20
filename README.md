@@ -2,7 +2,26 @@
 
 XYAI 官方桌面伴侣。小元是 XYAI 自有形象：透明置顶桌宠、紧凑对话窗、系统托盘，通过可插拔的 `BackendProvider` 连接 **XYAI Studio 组织下的独立产品**，并额外支持本机 Grok Bot 网关。
 
-[English](#english)
+[English](#english) · [文档目录](docs/README.md) · [Wiki](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki) · [Discussions](https://github.com/XYAIStudio/xyai-xiaoyuan/discussions) · [贡献指南](CONTRIBUTING.md)
+
+## 文档与社区
+
+完整说明在 `docs/`（中文优先），不要只看本 README 的摘要。
+
+| 文档                                        | 内容                                                  |
+| ------------------------------------------- | ----------------------------------------------------- |
+| [文档目录](docs/README.md)                  | 全部文档索引                                          |
+| [快速开始](docs/getting-started.md)         | Node LTS、Rust 1.88+、`npm run tauri dev`、浏览器预览 |
+| [后端对接](docs/backends.md)                | 四个提供者、设置字段、`npm run mock:backends`         |
+| [姿态与动画](docs/poses.md)                 | 16 官方造型、状态映射、锁定与叠化                     |
+| [Windows 安装包](docs/packaging-windows.md) | NSIS CI、Artifacts、更新签名密钥                      |
+| [架构](docs/architecture.md)                | `BackendProvider`，如何加新的 XYAIStudio 后端         |
+| [贡献指南](docs/contributing.md)            | `make check`、PR 约定                                 |
+
+Wiki 同步稿在 [`docs/wiki-seed/`](docs/wiki-seed/)，可复制到 GitHub Wiki：
+
+- Wiki：<https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
+- Discussions：<https://github.com/XYAIStudio/xyai-xiaoyuan/discussions>
 
 ## 支持的后端
 
@@ -15,7 +34,7 @@ XYAI 官方桌面伴侣。小元是 XYAI 自有形象：透明置顶桌宠、紧
 | **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 本地优先 Electron 工作台。公开仓库没有桌宠可调用的 listAgents / 对话 HTTP API。现有互通是 Studio → openXYOS：`POST /api/xyai/agents/import` 等，请求头 `X-XYAI-Interop: studio`。提供方已注册，设置里可见，连接测试会说明未就绪。                                    |
 | **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | `GET /health`（无鉴权）· `POST /api/listAgents` · `POST /api/sendPrompt` `{agentId,prompt}`，Bearer 令牌。可从 `sand-data/gateway.json` 的 `{port,scheme,host,token}` 导入（`0.0.0.0` / `::` 会改写为 `127.0.0.1`）。**仅本机 / 隧道使用，路径可能随网关版本变化。** |
 
-架构按「任意 XYAIStudio 自有后端」设计，不绑死单一产品。以后新增组织内的独立仓库，只需加一个 provider，不必重写桌宠与对话 UI。
+架构按「任意 XYAIStudio 自有后端」设计，不绑死单一产品。以后新增组织内的独立仓库，只需加一个 provider，不必重写桌宠与对话 UI。完整字段与模拟网关见 [docs/backends.md](docs/backends.md)，插件步骤见 [docs/architecture.md](docs/architecture.md)。
 
 ## 如何新增一个后端 Provider
 
@@ -26,7 +45,7 @@ XYAI 官方桌面伴侣。小元是 XYAI 自有形象：透明置顶桌宠、紧
 3. 把 `id` 加入 `PROVIDER_IDS`（`src/lib/providers/types.ts`），并把实例推进 `BACKEND_PROVIDERS`（`src/lib/providers/registry.ts`）。
 4. 配置：已有产品用 `AppConfig` 里的专用字段（`freeos` / `openxyos` / `xyaiStudio` / `grokbot`）。新品可写入 `providerOptions[id]`，Rust 端 `provider_id` 与 `provider_options` 均为开放字符串 / JSON，不必改枚举。
 5. 若有口令或令牌，把 key 加进 `src-tauri/src/secrets_cmd.rs` 的 `SECRET_KEYS`，并在设置页提供输入框。
-6. 在 `src/windows/SettingsWindow.tsx` 增加该后端的表单。桌宠、托盘、16 表情与对话窗无需改动。
+6. 在 `src/windows/SettingsWindow.tsx` 增加该后端的表单。桌宠、托盘、16 表情与对话窗无需改动。逐步说明见 [docs/architecture.md](docs/architecture.md)。
 
 ## 运行
 
@@ -39,7 +58,7 @@ npm install
 npm run tauri dev
 ```
 
-浏览器预览（无透明置顶）：`npm run dev`，然后打开 `http://localhost:1420/?window=pet`、`?window=chat`、`?window=settings`。
+浏览器预览（无透明置顶）：`npm run dev`，然后打开 `http://localhost:1420/?window=pet`、`?window=chat`、`?window=settings`。更完整的环境说明见 [docs/getting-started.md](docs/getting-started.md)。
 
 质量检查：`make check`（前端 lint / `tsc` / Vitest，以及 `cargo test`）。提交前可 `make install-hooks`。
 
@@ -70,7 +89,7 @@ npm run mock:backends
 | openXYOS | `http://127.0.0.1:13000` | `xiaoyuan@xyai.local` / `xiaoyuan` |
 | Grok Bot | `http://127.0.0.1:11340` | 令牌 `mock-token`                  |
 
-另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。
+另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。详见 [docs/backends.md](docs/backends.md)。
 
 ## Windows 安装包
 
@@ -81,7 +100,7 @@ npm run mock:backends
 - 图标来自小元官方画（`src-tauri/icons/`，`assets/mascot/icon-source.png`）
 - MSI / WiX 未进 CI：`light.exe` 会因中文产品名路径失败。需要 MSI 时请在本机 Windows 上用 ASCII productName 自行 `npx tauri build --bundles msi`
 
-未配置更新签名密钥时，CI 仍会打出安装包，只是不含 updater 增量包。
+未配置更新签名密钥时，CI 仍会打出安装包，只是不含 updater 增量包。下载步骤、密钥清单与 MSI 说明见 [docs/packaging-windows.md](docs/packaging-windows.md)。
 
 ## 自动更新
 
@@ -99,7 +118,7 @@ npx tauri signer generate -w ~/.tauri/xyai-xiaoyuan.key
 2. GitHub → Settings → Secrets 添加 `TAURI_SIGNING_PRIVATE_KEY`（私钥文件全文），可选 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`。
 3. 打 tag（`v0.1.1`）或手动跑 **Release** 工作流；`tauri-action` 会写 draft Release 并上传 `latest.json`。
 
-没有密钥时检查更新会提示尚未配置，不影响日常聊天。
+没有密钥时检查更新会提示尚未配置，不影响日常聊天。清单见 [docs/packaging-windows.md](docs/packaging-windows.md#自动更新与签名密钥)。
 
 ## 小元 16 表情
 
@@ -136,7 +155,7 @@ npx tauri signer generate -w ~/.tauri/xyai-xiaoyuan.key
 | 创作 / 生成     | 魔法创造、小画家                       |
 | 夜间 / 离开     | 晚安陪伴                               |
 
-流式输出或拖动桌宠时暂停待机轮换。右键菜单或设置里点选姿态会保持到下一次自动状态变化；勾选 **锁定姿态** 则完全冻结，直到取消锁定。设置中也可关闭自动表情。较长的流式回复会从思考姿态过渡到创作姿态。
+流式输出或拖动桌宠时暂停待机轮换。右键菜单或设置里点选姿态会保持到下一次自动状态变化；勾选 **锁定姿态** 则完全冻结，直到取消锁定。设置中也可关闭自动表情。较长的流式回复会从思考姿态过渡到创作姿态。常量与状态机见 [docs/poses.md](docs/poses.md)。
 
 ## 许可证
 
@@ -157,4 +176,6 @@ npm run tauri dev
 
 Browser preview (no always-on-top chrome): `npm run dev`, then `http://localhost:1420/?window=pet`. Poses crossfade (~380ms) instead of hard-cutting; all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. A right-click or Settings pick holds until the next automatic state change; **锁定姿态** freezes the current pose.
 
-Without a live backend, `npm run mock:backends` serves FreeOS `:18088`, openXYOS `:13000`, and Grok Bot `:11340`. Windows NSIS installers are built on GitHub Actions (`windows-latest`); check the **Windows installers** workflow artifact `xyai-xiaoyuan-windows-x64-nsis`. Auto-update uses GitHub Releases `latest.json` — add `TAURI_SIGNING_PRIVATE_KEY` before the first public release (see the Chinese checklist).
+Docs (Chinese-first): [docs/README.md](docs/README.md). Wiki: <https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>. Discussions: <https://github.com/XYAIStudio/xyai-xiaoyuan/discussions>. Contributing: [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Without a live backend, `npm run mock:backends` serves FreeOS `:18088`, openXYOS `:13000`, and Grok Bot `:11340`. Windows NSIS installers are built on GitHub Actions (`windows-latest`); check the **Windows installers** workflow artifact `xyai-xiaoyuan-windows-x64-nsis`. Auto-update uses GitHub Releases `latest.json` — add `TAURI_SIGNING_PRIVATE_KEY` before the first public release (see [docs/packaging-windows.md](docs/packaging-windows.md)).
