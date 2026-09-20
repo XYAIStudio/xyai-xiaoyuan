@@ -30,7 +30,7 @@ XYAI 官方桌面伴侣。小元是 XYAI 自有形象：透明置顶桌宠、紧
 
 ## 运行
 
-需要 **Node.js LTS** 与 **Rust**（[Tauri 前置依赖](https://tauri.app/start/prerequisites/)）。
+需要 **Node.js LTS** 与 **Rust 1.88+**（[Tauri 前置依赖](https://tauri.app/start/prerequisites/)）。仓库含 `rust-toolchain.toml`。
 
 ```bash
 git clone https://github.com/XYAIStudio/xyai-xiaoyuan.git

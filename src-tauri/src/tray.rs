@@ -1,8 +1,8 @@
 use tauri::{
-    AppHandle, Manager,
     image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    AppHandle, Manager,
 };
 
 use crate::window_cmd;

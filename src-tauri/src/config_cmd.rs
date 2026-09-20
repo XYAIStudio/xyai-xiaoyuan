@@ -1,9 +1,4 @@
-use std::{
-    collections::HashMap,
-    fs,
-    path::Path,
-    sync::Mutex,
-};
+use std::{collections::HashMap, fs, path::Path, sync::Mutex};
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
@@ -13,8 +8,22 @@ const CONFIG_FILE_NAME: &str = "config.json";
 static CONFIG_WRITE_LOCK: Mutex<()> = Mutex::new(());
 
 const POSES: &[&str] = &[
-    "wave", "thumbs", "hearts", "idea", "think", "run", "celebrate", "explore", "magic",
-    "garden", "music", "paint", "party", "hug", "hero", "night",
+    "wave",
+    "thumbs",
+    "hearts",
+    "idea",
+    "think",
+    "run",
+    "celebrate",
+    "explore",
+    "magic",
+    "garden",
+    "music",
+    "paint",
+    "party",
+    "hug",
+    "hero",
+    "night",
 ];
 
 /// Known built-in ids: `freeos`, `openxyos`, `xyai-studio`, `grokbot`.

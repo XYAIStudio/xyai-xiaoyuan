@@ -1,9 +1,4 @@
-use std::{
-    collections::HashMap,
-    fs,
-    path::Path,
-    sync::Mutex,
-};
+use std::{collections::HashMap, fs, path::Path, sync::Mutex};
 
 use serde::Deserialize;
 use tauri::{AppHandle, Manager};
@@ -141,9 +136,7 @@ pub fn get_secret(app: AppHandle, key: String) -> Result<Option<String>, String>
         return get_secret_from_file(&secrets_path(&app)?, &account);
     }
     #[cfg(not(debug_assertions))]
-    match Entry::new(KEYRING_SERVICE, &account)
-        .and_then(|entry| entry.get_password())
-    {
+    match Entry::new(KEYRING_SERVICE, &account).and_then(|entry| entry.get_password()) {
         Ok(value) => Ok(Some(value)),
         Err(Error::NoEntry) => Ok(None),
         Err(error) => Err(format!("failed to read secret: {error}")),
@@ -188,8 +181,8 @@ struct GatewayFile {
 }
 
 pub fn gateway_file_to_url_and_token(raw: &str) -> Result<(String, Option<String>), String> {
-    let parsed: GatewayFile = serde_json::from_str(raw)
-        .map_err(|error| format!("gateway.json 解析失败: {error}"))?;
+    let parsed: GatewayFile =
+        serde_json::from_str(raw).map_err(|error| format!("gateway.json 解析失败: {error}"))?;
     let mut host = parsed.host.unwrap_or_else(|| "127.0.0.1".into());
     if host == "0.0.0.0" || host == "::" {
         host = "127.0.0.1".into();
@@ -202,12 +195,8 @@ pub fn gateway_file_to_url_and_token(raw: &str) -> Result<(String, Option<String
 }
 
 #[tauri::command]
-pub fn import_gateway_json(
-    app: AppHandle,
-    path: String,
-) -> Result<serde_json::Value, String> {
-    let raw = fs::read_to_string(&path)
-        .map_err(|error| format!("无法读取 {path}: {error}"))?;
+pub fn import_gateway_json(app: AppHandle, path: String) -> Result<serde_json::Value, String> {
+    let raw = fs::read_to_string(&path).map_err(|error| format!("无法读取 {path}: {error}"))?;
     let (base_url, token) = gateway_file_to_url_and_token(&raw)?;
     let has_token = token.is_some();
     if let Some(token) = token {

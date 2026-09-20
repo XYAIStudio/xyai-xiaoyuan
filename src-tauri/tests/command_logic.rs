@@ -2,7 +2,7 @@ use std::fs;
 
 use serde_json::json;
 use xyai_xiaoyuan_lib::config_cmd::{
-    self, AppConfig, home_url_for, normalize_provider_id, select_mascot, supported_poses,
+    self, home_url_for, normalize_provider_id, select_mascot, supported_poses, AppConfig,
 };
 use xyai_xiaoyuan_lib::secrets_cmd::{
     gateway_file_to_url_and_token, secret_account, validate_secret_key,
@@ -14,8 +14,22 @@ fn sixteen_official_poses_are_selectable() {
     let poses = supported_poses();
     assert_eq!(poses.len(), 16);
     let expected = [
-        "wave", "thumbs", "hearts", "idea", "think", "run", "celebrate", "explore", "magic",
-        "garden", "music", "paint", "party", "hug", "hero", "night",
+        "wave",
+        "thumbs",
+        "hearts",
+        "idea",
+        "think",
+        "run",
+        "celebrate",
+        "explore",
+        "magic",
+        "garden",
+        "music",
+        "paint",
+        "party",
+        "hug",
+        "hero",
+        "night",
     ];
     assert_eq!(poses, expected);
     let mut cfg = AppConfig::default();
@@ -28,7 +42,13 @@ fn sixteen_official_poses_are_selectable() {
 
 #[test]
 fn provider_id_roundtrip_includes_first_party_and_future_backends() {
-    for id in ["freeos", "openxyos", "xyai-studio", "grokbot", "future-xyai-app"] {
+    for id in [
+        "freeos",
+        "openxyos",
+        "xyai-studio",
+        "grokbot",
+        "future-xyai-app",
+    ] {
         let cfg = AppConfig {
             provider_id: normalize_provider_id(id),
             ..AppConfig::default()
@@ -108,8 +128,8 @@ fn secrets_keys_and_gateway_import_parsing() {
 
 #[test]
 fn chat_geometry_prefers_left_then_clamps() {
-    let (x, y) = chat_position(400, 100, 180, 180, 420, 520, 0, 0, 1280, 800);
-    assert_eq!(x, 400 - 420 - 8);
+    let (x, y) = chat_position(500, 100, 180, 180, 420, 520, 0, 0, 1280, 800);
+    assert_eq!(x, 500 - 420 - 8);
     assert!(y >= 0);
     let (x, _) = chat_position(10, 10, 180, 180, 420, 520, 0, 0, 800, 600);
     assert!(x >= 10 + 180);

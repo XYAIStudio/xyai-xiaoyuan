@@ -24,11 +24,7 @@ pub fn chat_position(
     let work_bottom = work_y.saturating_add_unsigned(work_h);
     let left_x = pet_x - chat_w as i32 - gap;
     let right_x = pet_x + pet_w as i32 + gap;
-    let mut x = if left_x >= work_x {
-        left_x
-    } else {
-        right_x
-    };
+    let mut x = if left_x >= work_x { left_x } else { right_x };
     if x + chat_w as i32 > work_right {
         x = work_right - chat_w as i32;
     }
@@ -150,8 +146,7 @@ pub fn show_chat_near_pet(app: AppHandle) -> Result<(), String> {
     );
     chat.set_position(PhysicalPosition::new(x, y))
         .map_err(|error| format!("chat position: {error}"))?;
-    chat.show()
-        .map_err(|error| format!("show chat: {error}"))?;
+    chat.show().map_err(|error| format!("show chat: {error}"))?;
     let _ = chat.set_focus();
     let _ = app.emit("chat-shown", ());
     Ok(())

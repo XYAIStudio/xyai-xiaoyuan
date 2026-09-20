@@ -4,13 +4,28 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import PetWindow from "../windows/PetWindow";
 import SettingsWindow from "../windows/SettingsWindow";
 import { PET_POSE_LIST } from "./mascots";
-import { DEFAULT_APP_CONFIG } from "./configLogic";
 
 vi.mock("./tauriApi", () => {
-  const config = { ...DEFAULT_APP_CONFIG };
   return {
     tauriApi: {
-      loadConfig: vi.fn(async () => config),
+      loadConfig: vi.fn(async () => ({
+        providerId: "freeos",
+        freeos: { baseUrl: "http://127.0.0.1:8088", username: "" },
+        openxyos: { baseUrl: "http://127.0.0.1:3000", email: "" },
+        xyaiStudio: { baseUrl: "" },
+        grokbot: { baseUrl: "http://127.0.0.1:1340", gatewayJsonPath: "" },
+        providerOptions: {},
+        mascotId: "wave",
+        autoExpression: true,
+        lastAgentId: null,
+        threadIdByAgent: {},
+        petX: null,
+        petY: null,
+        petSize: 180,
+        shortcutOpenPet: "CmdOrCtrl+Shift+Y",
+        shortcutOpenHome: "CmdOrCtrl+Shift+H",
+        keepWindowsVisible: true,
+      })),
       saveConfig: vi.fn(async () => undefined),
       patchConfig: vi.fn(async () => undefined),
       getSecret: vi.fn(async () => null),

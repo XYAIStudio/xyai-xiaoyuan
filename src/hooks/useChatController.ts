@@ -38,6 +38,7 @@ export function useChatController() {
   const connectionRef = useRef(connection);
   connectionRef.current = connection;
   const handleRef = useRef<{ cancel: () => void } | null>(null);
+  const sendNowRef = useRef<(text: string) => Promise<void>>(async () => undefined);
   const loadSeq = useRef(0);
   const mounted = useRef(true);
 
@@ -204,7 +205,7 @@ export function useChatController() {
           const next = shiftChatItem(queueRef.current);
           if (next.item) {
             setQueue(next.queue);
-            void sendNow(next.item.text);
+            void sendNowRef.current(next.item.text);
           }
         },
         onError: (message) => {
@@ -223,6 +224,7 @@ export function useChatController() {
     },
     [agentId, contextOf, emitLife],
   );
+  sendNowRef.current = sendNow;
 
   const send = useCallback(
     async (text: string) => {
