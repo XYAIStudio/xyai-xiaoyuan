@@ -26,25 +26,39 @@ function ChatPomoBar() {
   const settingsRef = useRef(DEFAULT_POMODORO);
 
   useEffect(() => {
+    let disposed = false;
     const unlisteners: Array<() => void> = [];
+    const keep = (promise: Promise<() => void>) => {
+      void promise.then((fn) => {
+        if (disposed) fn();
+        else unlisteners.push(fn);
+      });
+    };
     void tauriApi.loadConfig().then((cfg) => {
-      settingsRef.current = pomodoroSettingsOf(cfg);
+      if (!disposed) settingsRef.current = pomodoroSettingsOf(cfg);
     });
-    void tauriApi
-      .listenPomodoroUpdated<PomodoroState>((next) => setState(next))
-      .then((fn) => unlisteners.push(fn));
-    void tauriApi
-      .listenPomodoroToggle(() => {
+    keep(
+      tauriApi.listenPomodoroUpdated<PomodoroState>((next) => {
+        if (!disposed) setState(next);
+      }),
+    );
+    keep(
+      tauriApi.listenPomodoroToggle(() => {
+        if (disposed) return;
         setState((current) => togglePomodoro(current, Date.now(), settingsRef.current));
-      })
-      .then((fn) => unlisteners.push(fn));
-    void tauriApi
-      .listenPomodoroSkip(() => {
+      }),
+    );
+    keep(
+      tauriApi.listenPomodoroSkip(() => {
+        if (disposed) return;
         setState((current) => skipPhase(current, Date.now(), settingsRef.current));
-      })
-      .then((fn) => unlisteners.push(fn));
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+      }),
+    );
+    const timer = window.setInterval(() => {
+      if (!disposed) setNow(Date.now());
+    }, 1000);
     return () => {
+      disposed = true;
       unlisteners.forEach((fn) => fn());
       window.clearInterval(timer);
     };

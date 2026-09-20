@@ -240,7 +240,10 @@ export default function PetWindow() {
         }
         applyPose(id);
       })
-      .then((fn) => unlisteners.push(fn));
+      .then((fn) => {
+        if (disposed) fn();
+        else unlisteners.push(fn);
+      });
     void tauriApi
       .listenPetLifecycle((life) => {
         const next = asLifecycle(life);
@@ -268,7 +271,10 @@ export default function PetWindow() {
         if (next === "error") playSfx("error", audio);
         if (next === "connecting") showToast("正在连接后端…");
       })
-      .then((fn) => unlisteners.push(fn));
+      .then((fn) => {
+        if (disposed) fn();
+        else unlisteners.push(fn);
+      });
     void tauriApi
       .listenConfigUpdated(() => {
         void tauriApi.loadConfig().then((cfg) => {
@@ -276,10 +282,16 @@ export default function PetWindow() {
           applyConfig(cfg);
         });
       })
-      .then((fn) => unlisteners.push(fn));
+      .then((fn) => {
+        if (disposed) fn();
+        else unlisteners.push(fn);
+      });
     void tauriApi
       .listenPetToast((item) => showToast(item.text, item.tone))
-      .then((fn) => unlisteners.push(fn));
+      .then((fn) => {
+        if (disposed) fn();
+        else unlisteners.push(fn);
+      });
     void tauriApi
       .listenPomodoroToggle(() => {
         const cfg = cfgRef.current;
@@ -294,7 +306,10 @@ export default function PetWindow() {
         applyFromState();
         void tauriApi.emitPomodoroUpdated(pomoRef.current);
       })
-      .then((fn) => unlisteners.push(fn));
+      .then((fn) => {
+        if (disposed) fn();
+        else unlisteners.push(fn);
+      });
     void tauriApi
       .listenPomodoroSkip(() => {
         const cfg = cfgRef.current;
@@ -309,7 +324,10 @@ export default function PetWindow() {
         applyFromState();
         void tauriApi.emitPomodoroUpdated(pomoRef.current);
       })
-      .then((fn) => unlisteners.push(fn));
+      .then((fn) => {
+        if (disposed) fn();
+        else unlisteners.push(fn);
+      });
 
     const speak = (reason: Parameters<typeof pickLine>[0], tick = 0, force = false) => {
       if (!force && cfgRef.current?.companionBubbles === false) return;
@@ -356,7 +374,10 @@ export default function PetWindow() {
     };
     companionActionRef.current = runAction;
 
-    void tauriApi.listenCompanionAction(runAction).then((fn) => unlisteners.push(fn));
+    void tauriApi.listenCompanionAction(runAction).then((fn) => {
+      if (disposed) fn();
+      else unlisteners.push(fn);
+    });
 
     const poll = window.setInterval(() => {
       if (disposed) return;
