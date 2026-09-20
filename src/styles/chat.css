@@ -1,0 +1,97 @@
+.chat-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #0b1724 0%, #102132 100%);
+  color: #eaf6ff;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(90, 210, 255, 0.35);
+}
+
+.chat-header,
+.chat-toolbar,
+.chat-composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.chat-header {
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.chat-header-actions,
+.chat-composer {
+  gap: 8px;
+}
+
+.chat-badge {
+  margin-left: 8px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.chat-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 8px 10px;
+  border-radius: 12px;
+  line-height: 1.45;
+}
+
+.bubble.is-user {
+  align-self: flex-end;
+  background: #1b6f9c;
+}
+
+.bubble.is-assistant {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.chat-composer textarea {
+  flex: 1;
+  resize: none;
+  border-radius: 10px;
+  border: 1px solid rgba(120, 210, 255, 0.3);
+  background: rgba(0, 0, 0, 0.28);
+  color: inherit;
+  padding: 8px;
+}
+
+.chat-empty,
+.chat-error,
+.chat-queue {
+  font-size: 13px;
+  padding: 0 12px;
+}
+
+.chat-error {
+  color: #ffb4b4;
+}
+
+.chat-error button {
+  margin-left: 8px;
+}
+
+.chat-close,
+.chat-header button,
+.chat-composer button,
+.chat-toolbar select {
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
