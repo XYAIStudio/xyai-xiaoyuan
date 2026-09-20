@@ -2,7 +2,7 @@
 
 XYAI精灵小元的官方造型。**小元是 XYAI 自有形象。**
 
-仓库展示目录：[`assets/showcase/`](../assets/showcase/README.md)
+仓库展示目录：[`assets/showcase/`](../assets/showcase/README.md)。官方静态图为透明 PNG；动态预览 GIF 为逐帧透明，不再使用实心黑底。
 
 - 静态 16 造型：[`assets/showcase/static/`](../assets/showcase/static/)
 - 动态预览：[`assets/showcase/dynamic/preview.gif`](../assets/showcase/dynamic/preview.gif)

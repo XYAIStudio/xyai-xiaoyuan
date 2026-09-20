@@ -4,7 +4,9 @@ XYAI精灵小元的官方造型目录。**小元是 XYAI 自有形象。**
 
 本目录只用于仓库展示与文档引用。应用运行时仍读取 [`assets/mascot/`](../mascot/) 与 [`public/mascots/`](../../public/mascots/)，请勿改那些路径。
 
-- 静态造型：[`static/`](static/)（16 张 PNG，中文文件名）
+官方静态造型是 **透明背景 PNG**（RGBA，四角 alpha≈0，保留抗锯齿与淡蓝光晕）。动态预览 `preview.gif` 由前 6 个官方姿态重建，使用 GIF89a 逐帧透明索引（GIF 只有 1-bit 透明；光晕在源 PNG 里已接近不透明，因此能保住）。请勿再铺实心黑底。重建：`python3 scripts/rebuild-transparent-preview-gif.py`（Pillow + numpy）。
+
+- 静态造型：[`static/`](static/)（16 张透明 PNG，中文文件名）
 - 动态预览：[`dynamic/preview.gif`](dynamic/preview.gif)
 
 完整说明见 [姿态与动画](../../docs/poses.md) · [文档画廊](../../docs/gallery.md)

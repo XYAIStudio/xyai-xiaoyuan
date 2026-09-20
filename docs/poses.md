@@ -2,6 +2,8 @@
 
 小元有 **16 个官方造型**。源文件在 `assets/mascot/poses/`（中文文件名），界面使用 `public/mascots/` 下的英文文件名 PNG。仓库展示副本（含动态 GIF）见 [形象画廊](gallery.md) 与 [`assets/showcase/`](../assets/showcase/README.md)。设置与桌宠右键菜单均可点选。
 
+官方资源都是透明底：静态姿态为 RGBA PNG（四角 alpha≈0，保留淡蓝光晕与边缘抗锯齿）；`preview.gif` 为 GIF89a 逐帧透明。桌宠窗口 CSS 不得在 `<img>` 后铺黑底。
+
 实现：`src/lib/mascots.ts`（目录与预加载）、`src/lib/poseMachine.ts`（状态机）、`src/windows/PetWindow.tsx`（双层 CSS 叠化）。
 
 ## 16 官方造型
