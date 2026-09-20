@@ -1,4 +1,8 @@
 import type { PetLifecycle, PetPoseId } from "./mascots";
+import type { ActivitySnapshot, AppCategory } from "./activity";
+import { TYPING_BURST_MS } from "./activity";
+import type { PomodoroPhase } from "./pomodoro";
+import { dayPeriodFromHour } from "./timeOfDay";
 
 /** Crossfade duration; keep short so the transparent pet never empties. */
 export const POSE_CROSSFADE_MS = 380;
@@ -17,6 +21,10 @@ export const SUCCESS_POSES: readonly PetPoseId[] = ["thumbs", "celebrate"];
 export const CREATE_POSES: readonly PetPoseId[] = ["magic", "paint"];
 export const AFFECTION_POSES: readonly PetPoseId[] = ["hearts"];
 export const NIGHT_POSES: readonly PetPoseId[] = ["night"];
+export const EVENING_POSES: readonly PetPoseId[] = ["hug", "garden"];
+export const FOCUS_POSES: readonly PetPoseId[] = ["think", "hero"];
+export const BREAK_POSES: readonly PetPoseId[] = ["garden", "music"];
+export const LONG_BREAK_POSES: readonly PetPoseId[] = ["party", "celebrate"];
 
 export type PoseResolveOptions = {
   tick?: number;
@@ -25,6 +33,8 @@ export type PoseResolveOptions = {
   current?: PetPoseId;
   autoExpression?: boolean;
   lockPose?: boolean;
+  timeOfDayPoses?: boolean;
+  moodEnergy?: number;
 };
 
 export type IdleCycleGate = {
@@ -36,6 +46,17 @@ export type IdleCycleGate = {
   manualHoldUntil: number;
 };
 
+export type CompanionPoseInput = PoseResolveOptions & {
+  lifecycle: PetLifecycle;
+  activityAware?: boolean;
+  activity?: ActivitySnapshot | null;
+  idleThresholdMs?: number;
+  longIdleThresholdMs?: number;
+  foregroundHints?: boolean;
+  moodEnabled?: boolean;
+  pomodoroPhase?: PomodoroPhase;
+};
+
 const BUSY_LIVES: ReadonlySet<PetLifecycle> = new Set([
   "connecting",
   "thinking",
@@ -44,12 +65,24 @@ const BUSY_LIVES: ReadonlySet<PetLifecycle> = new Set([
   "create",
 ]);
 
+const CHAT_PRIORITY_LIVES: ReadonlySet<PetLifecycle> = new Set([
+  "connecting",
+  "thinking",
+  "streaming",
+  "tool",
+  "create",
+  "success",
+  "error",
+  "affection",
+  "welcome",
+]);
+
 export function isBusyLifecycle(life: PetLifecycle): boolean {
   return BUSY_LIVES.has(life);
 }
 
-function isNightHour(hour: number): boolean {
-  return hour >= 22 || hour < 6;
+export function chatPoseTakesPriority(life: PetLifecycle): boolean {
+  return CHAT_PRIORITY_LIVES.has(life);
 }
 
 function isPoseId(value: string | undefined): value is PetPoseId {
@@ -71,6 +104,43 @@ function isPoseId(value: string | undefined): value is PetPoseId {
     value === "hero" ||
     value === "night"
   );
+}
+
+export function poseEnergyScore(id: PetPoseId): number {
+  switch (id) {
+    case "night":
+      return 10;
+    case "think":
+      return 28;
+    case "hug":
+      return 34;
+    case "garden":
+      return 40;
+    case "wave":
+      return 46;
+    case "idea":
+      return 52;
+    case "paint":
+      return 56;
+    case "explore":
+      return 60;
+    case "magic":
+      return 66;
+    case "hearts":
+      return 70;
+    case "thumbs":
+      return 74;
+    case "music":
+      return 78;
+    case "run":
+      return 82;
+    case "hero":
+      return 86;
+    case "celebrate":
+      return 90;
+    case "party":
+      return 96;
+  }
 }
 
 export function evolveLifecycle(life: PetLifecycle, elapsedMs: number): PetLifecycle {
@@ -102,15 +172,36 @@ export function pickFromPool(
   return chosen;
 }
 
+export function pickWithMood(
+  pool: readonly PetPoseId[],
+  tick: number,
+  current: PetPoseId | undefined,
+  energy: number | undefined,
+): PetPoseId {
+  if (energy == null || pool.length < 2) return pickFromPool(pool, tick, current);
+  const ranked = [...pool].sort(
+    (a, b) =>
+      Math.abs(poseEnergyScore(a) - energy) - Math.abs(poseEnergyScore(b) - energy),
+  );
+  const first = ranked[0];
+  if (current && first === current && ranked[1]) return ranked[1];
+  return first;
+}
+
 export function posesForLifecycle(
   life: PetLifecycle,
-  options: { hour?: number; idlePose?: PetPoseId } = {},
+  options: { hour?: number; idlePose?: PetPoseId; timeOfDayPoses?: boolean } = {},
 ): readonly PetPoseId[] {
   switch (life) {
     case "away":
       return NIGHT_POSES;
     case "idle":
-      if (options.hour != null && isNightHour(options.hour)) return NIGHT_POSES;
+      if (options.timeOfDayPoses !== false && options.hour != null) {
+        const period = dayPeriodFromHour(options.hour);
+        if (period === "night") return NIGHT_POSES;
+        if (period === "morning") return GREET_POSES;
+        if (period === "evening") return EVENING_POSES;
+      }
       if (options.idlePose && isPoseId(options.idlePose)) {
         if ((IDLE_FRIENDLY_POSES as readonly string[]).includes(options.idlePose)) {
           return uniquePoses([options.idlePose, ...IDLE_FRIENDLY_POSES]);
@@ -147,22 +238,160 @@ export function resolvePose(
     options.idlePose && isPoseId(options.idlePose) ? options.idlePose : "wave";
   if (options.lockPose) return current ?? idle;
   if (options.autoExpression === false && life !== "away") return idle;
-  const pool = posesForLifecycle(life, { hour: options.hour, idlePose: idle });
-  return pickFromPool(pool, options.tick ?? 0, current);
+  const pool = posesForLifecycle(life, {
+    hour: options.hour,
+    idlePose: idle,
+    timeOfDayPoses: options.timeOfDayPoses,
+  });
+  return pickWithMood(pool, options.tick ?? 0, current, options.moodEnergy);
+}
+
+function poseFromForeground(
+  category: AppCategory,
+  tick: number,
+  current: PetPoseId | undefined,
+  energy: number | undefined,
+): PetPoseId | null {
+  switch (category) {
+    case "ide":
+      return pickWithMood(["think", "paint"], tick, current, energy);
+    case "browser":
+      return pickWithMood(["explore", "idea"], tick, current, energy);
+    case "meeting":
+      return pickWithMood(["wave", "hero"], tick, current, energy);
+    case "media":
+      return pickWithMood(["music", "party"], tick, current, energy);
+    default:
+      return null;
+  }
+}
+
+export function poseFromActivity(
+  snap: ActivitySnapshot,
+  options: {
+    idleThresholdMs: number;
+    longIdleThresholdMs: number;
+    foregroundHints?: boolean;
+    tick?: number;
+    current?: PetPoseId;
+    moodEnergy?: number;
+  },
+): PetPoseId | null {
+  if (!snap.available) return null;
+  const tick = options.tick ?? 0;
+  const energy = options.moodEnergy;
+  if (snap.idleMs >= options.longIdleThresholdMs) return "night";
+  if (snap.kind === "idle") return null;
+  if (
+    snap.kind === "typing" ||
+    (snap.source === "keyboard" && snap.idleMs < TYPING_BURST_MS)
+  ) {
+    return pickWithMood(["think", "paint"], tick, options.current, energy);
+  }
+  if (options.foregroundHints && snap.foreground) {
+    const hinted = poseFromForeground(
+      snap.foreground.category,
+      tick,
+      options.current,
+      energy,
+    );
+    if (hinted) return hinted;
+  }
+  return pickWithMood(["run", "wave"], tick, options.current, energy);
+}
+
+function poseFromPomodoro(
+  phase: PomodoroPhase | undefined,
+  tick: number,
+  current: PetPoseId | undefined,
+  energy: number | undefined,
+): PetPoseId | null {
+  if (!phase || phase === "idle") return null;
+  if (phase === "focus") return pickWithMood(FOCUS_POSES, tick, current, energy);
+  if (phase === "longBreak")
+    return pickWithMood(LONG_BREAK_POSES, tick, current, energy);
+  return pickWithMood(BREAK_POSES, tick, current, energy);
+}
+
+/**
+ * Full companion resolver. Chat streaming / tool-busy / lock still win over
+ * activity, pomodoro, and clock-based idle.
+ */
+export function resolveCompanionPose(input: CompanionPoseInput): PetPoseId {
+  const current = input.current && isPoseId(input.current) ? input.current : undefined;
+  const idle = input.idlePose && isPoseId(input.idlePose) ? input.idlePose : "wave";
+  if (input.lockPose) return current ?? idle;
+  if (input.autoExpression === false && input.lifecycle !== "away") return idle;
+
+  const energy = input.moodEnabled === false ? undefined : input.moodEnergy;
+  const tick = input.tick ?? 0;
+
+  if (chatPoseTakesPriority(input.lifecycle) || isBusyLifecycle(input.lifecycle)) {
+    return resolvePose(input.lifecycle, {
+      tick,
+      hour: input.hour,
+      idlePose: idle,
+      current,
+      autoExpression: input.autoExpression,
+      lockPose: false,
+      timeOfDayPoses: input.timeOfDayPoses,
+      moodEnergy: energy,
+    });
+  }
+
+  const pomodoroPose = poseFromPomodoro(input.pomodoroPhase, tick, current, energy);
+  if (pomodoroPose) return pomodoroPose;
+
+  if (input.activityAware !== false && input.activity) {
+    const activityPose = poseFromActivity(input.activity, {
+      idleThresholdMs: input.idleThresholdMs ?? 50_000,
+      longIdleThresholdMs: input.longIdleThresholdMs ?? 420_000,
+      foregroundHints: input.foregroundHints,
+      tick,
+      current,
+      moodEnergy: energy,
+    });
+    if (activityPose) return activityPose;
+  }
+
+  return resolvePose("idle", {
+    tick,
+    hour: input.hour,
+    idlePose: idle,
+    current,
+    autoExpression: true,
+    timeOfDayPoses: input.timeOfDayPoses,
+    moodEnergy: energy,
+  });
 }
 
 export function nextIdlePose(
   current: PetPoseId,
-  options: { hour?: number; tick: number; preferred?: PetPoseId } = { tick: 0 },
+  options: {
+    hour?: number;
+    tick: number;
+    preferred?: PetPoseId;
+    timeOfDayPoses?: boolean;
+    moodEnergy?: number;
+  } = { tick: 0 },
 ): PetPoseId {
-  if (options.hour != null && isNightHour(options.hour)) return "night";
+  if (options.timeOfDayPoses !== false && options.hour != null) {
+    const period = dayPeriodFromHour(options.hour);
+    if (period === "night") return "night";
+    if (period === "evening") {
+      return pickWithMood(EVENING_POSES, options.tick, current, options.moodEnergy);
+    }
+    if (period === "morning") {
+      return pickWithMood(GREET_POSES, options.tick, current, options.moodEnergy);
+    }
+  }
   const preferred =
     options.preferred &&
     (IDLE_FRIENDLY_POSES as readonly string[]).includes(options.preferred)
       ? options.preferred
       : undefined;
   const pool = uniquePoses([...(preferred ? [preferred] : []), ...IDLE_FRIENDLY_POSES]);
-  return pickFromPool(pool, options.tick, current);
+  return pickWithMood(pool, options.tick, current, options.moodEnergy);
 }
 
 export function planCrossfade(

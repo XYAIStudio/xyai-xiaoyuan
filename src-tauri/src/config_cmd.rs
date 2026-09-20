@@ -113,6 +113,40 @@ pub struct AppConfig {
     pub shortcut_open_pet: String,
     pub shortcut_open_home: String,
     pub keep_windows_visible: bool,
+    pub activity_aware: bool,
+    pub idle_threshold_sec: u32,
+    pub long_idle_threshold_sec: u32,
+    pub foreground_hints: bool,
+    pub time_of_day_poses: bool,
+    pub pet_opacity: f64,
+    pub always_on_top: bool,
+    pub click_through: bool,
+    pub edge_snap: bool,
+    pub pet_position_by_monitor: HashMap<String, MonitorPos>,
+    pub autostart: bool,
+    pub sound_enabled: bool,
+    pub sfx_enabled: bool,
+    pub music_enabled: bool,
+    pub sound_volume: u32,
+    pub quiet_hours_enabled: bool,
+    pub quiet_hours_start: String,
+    pub quiet_hours_end: String,
+    pub pomodoro_focus_min: u32,
+    pub pomodoro_break_min: u32,
+    pub pomodoro_long_break_min: u32,
+    pub mood_meter_enabled: bool,
+    pub mood_energy: u32,
+    pub screen_understanding: bool,
+    pub shortcut_open_chat: String,
+    pub shortcut_toggle_click_through: String,
+    pub shortcut_pomodoro: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct MonitorPos {
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Default for AppConfig {
@@ -135,8 +169,53 @@ impl Default for AppConfig {
             shortcut_open_pet: "CmdOrCtrl+Shift+Y".into(),
             shortcut_open_home: "CmdOrCtrl+Shift+H".into(),
             keep_windows_visible: true,
+            activity_aware: true,
+            idle_threshold_sec: 50,
+            long_idle_threshold_sec: 420,
+            foreground_hints: false,
+            time_of_day_poses: true,
+            pet_opacity: 100.0,
+            always_on_top: true,
+            click_through: false,
+            edge_snap: true,
+            pet_position_by_monitor: HashMap::new(),
+            autostart: false,
+            sound_enabled: false,
+            sfx_enabled: true,
+            music_enabled: false,
+            sound_volume: 40,
+            quiet_hours_enabled: false,
+            quiet_hours_start: "22:00".into(),
+            quiet_hours_end: "07:00".into(),
+            pomodoro_focus_min: 25,
+            pomodoro_break_min: 5,
+            pomodoro_long_break_min: 15,
+            mood_meter_enabled: true,
+            mood_energy: 64,
+            screen_understanding: false,
+            shortcut_open_chat: "CmdOrCtrl+Shift+C".into(),
+            shortcut_toggle_click_through: "CmdOrCtrl+Shift+T".into(),
+            shortcut_pomodoro: "CmdOrCtrl+Shift+P".into(),
         }
     }
+}
+
+fn clamp_u32(value: u32, min: u32, max: u32) -> u32 {
+    value.clamp(min, max)
+}
+
+fn valid_hhmm(value: &str) -> bool {
+    let parts: Vec<&str> = value.split(':').collect();
+    if parts.len() != 2 {
+        return false;
+    }
+    let Ok(hour) = parts[0].parse::<u32>() else {
+        return false;
+    };
+    let Ok(minute) = parts[1].parse::<u32>() else {
+        return false;
+    };
+    hour <= 23 && minute <= 59 && parts[1].len() == 2
 }
 
 pub fn supported_poses() -> &'static [&'static str] {
@@ -233,6 +312,76 @@ fn merge_patch(cfg: &mut AppConfig, patch: Value) -> Result<(), String> {
             "shortcutOpenPet" => cfg.shortcut_open_pet = patch_field(key, value.clone())?,
             "shortcutOpenHome" => cfg.shortcut_open_home = patch_field(key, value.clone())?,
             "keepWindowsVisible" => cfg.keep_windows_visible = patch_field(key, value.clone())?,
+            "activityAware" => cfg.activity_aware = patch_field(key, value.clone())?,
+            "idleThresholdSec" => {
+                let n: u32 = patch_field(key, value.clone())?;
+                cfg.idle_threshold_sec = clamp_u32(n, 10, 600);
+            }
+            "longIdleThresholdSec" => {
+                let n: u32 = patch_field(key, value.clone())?;
+                cfg.long_idle_threshold_sec = clamp_u32(n, 60, 3600);
+            }
+            "foregroundHints" => cfg.foreground_hints = patch_field(key, value.clone())?,
+            "timeOfDayPoses" => cfg.time_of_day_poses = patch_field(key, value.clone())?,
+            "petOpacity" => {
+                let n: f64 = patch_field(key, value.clone())?;
+                if !(40.0..=100.0).contains(&n) {
+                    return Err("petOpacity must be between 40 and 100".into());
+                }
+                cfg.pet_opacity = n;
+            }
+            "alwaysOnTop" => cfg.always_on_top = patch_field(key, value.clone())?,
+            "clickThrough" => cfg.click_through = patch_field(key, value.clone())?,
+            "edgeSnap" => cfg.edge_snap = patch_field(key, value.clone())?,
+            "petPositionByMonitor" => {
+                cfg.pet_position_by_monitor = patch_field(key, value.clone())?
+            }
+            "autostart" => cfg.autostart = patch_field(key, value.clone())?,
+            "soundEnabled" => cfg.sound_enabled = patch_field(key, value.clone())?,
+            "sfxEnabled" => cfg.sfx_enabled = patch_field(key, value.clone())?,
+            "musicEnabled" => cfg.music_enabled = patch_field(key, value.clone())?,
+            "soundVolume" => {
+                let n: u32 = patch_field(key, value.clone())?;
+                cfg.sound_volume = clamp_u32(n, 0, 100);
+            }
+            "quietHoursEnabled" => cfg.quiet_hours_enabled = patch_field(key, value.clone())?,
+            "quietHoursStart" => {
+                let spec: String = patch_field(key, value.clone())?;
+                if !valid_hhmm(&spec) {
+                    return Err("quietHoursStart must be HH:MM".into());
+                }
+                cfg.quiet_hours_start = spec;
+            }
+            "quietHoursEnd" => {
+                let spec: String = patch_field(key, value.clone())?;
+                if !valid_hhmm(&spec) {
+                    return Err("quietHoursEnd must be HH:MM".into());
+                }
+                cfg.quiet_hours_end = spec;
+            }
+            "pomodoroFocusMin" => {
+                let n: u32 = patch_field(key, value.clone())?;
+                cfg.pomodoro_focus_min = clamp_u32(n, 1, 120);
+            }
+            "pomodoroBreakMin" => {
+                let n: u32 = patch_field(key, value.clone())?;
+                cfg.pomodoro_break_min = clamp_u32(n, 1, 120);
+            }
+            "pomodoroLongBreakMin" => {
+                let n: u32 = patch_field(key, value.clone())?;
+                cfg.pomodoro_long_break_min = clamp_u32(n, 1, 120);
+            }
+            "moodMeterEnabled" => cfg.mood_meter_enabled = patch_field(key, value.clone())?,
+            "moodEnergy" => {
+                let n: u32 = patch_field(key, value.clone())?;
+                cfg.mood_energy = clamp_u32(n, 0, 100);
+            }
+            "screenUnderstanding" => cfg.screen_understanding = patch_field(key, value.clone())?,
+            "shortcutOpenChat" => cfg.shortcut_open_chat = patch_field(key, value.clone())?,
+            "shortcutToggleClickThrough" => {
+                cfg.shortcut_toggle_click_through = patch_field(key, value.clone())?
+            }
+            "shortcutPomodoro" => cfg.shortcut_pomodoro = patch_field(key, value.clone())?,
             _ => return Err(format!("unsupported config field: {key}")),
         }
     }

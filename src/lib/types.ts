@@ -22,6 +22,11 @@ export interface GrokBotSettings {
   gatewayJsonPath: string;
 }
 
+export interface MonitorPosition {
+  x: number;
+  y: number;
+}
+
 export interface AppConfig {
   providerId: ProviderId;
   freeos: FreeOsSettings;
@@ -42,6 +47,47 @@ export interface AppConfig {
   shortcutOpenPet: string;
   shortcutOpenHome: string;
   keepWindowsVisible: boolean;
+
+  /** Drive poses from keyboard/mouse last-input. Default on. */
+  activityAware: boolean;
+  idleThresholdSec: number;
+  longIdleThresholdSec: number;
+  /** Optional process/title category → pose. Default off (privacy). */
+  foregroundHints: boolean;
+  /** Morning / evening / night pools from the local clock. Default on. */
+  timeOfDayPoses: boolean;
+
+  petOpacity: number;
+  alwaysOnTop: boolean;
+  clickThrough: boolean;
+  edgeSnap: boolean;
+  petPositionByMonitor: Record<string, MonitorPosition>;
+
+  autostart: boolean;
+
+  soundEnabled: boolean;
+  sfxEnabled: boolean;
+  musicEnabled: boolean;
+  soundVolume: number;
+  quietHoursEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+
+  pomodoroFocusMin: number;
+  pomodoroBreakMin: number;
+  pomodoroLongBreakMin: number;
+
+  moodMeterEnabled: boolean;
+  moodEnergy: number;
+
+  /**
+   * Future screenshot/OCR module. Persisted but inert — never captures in this build.
+   */
+  screenUnderstanding: boolean;
+
+  shortcutOpenChat: string;
+  shortcutToggleClickThrough: string;
+  shortcutPomodoro: string;
 }
 
 export interface AgentSummary {

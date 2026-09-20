@@ -1,13 +1,14 @@
 use std::fs;
 
 use serde_json::json;
+use xyai_xiaoyuan_lib::activity_cmd::{categorize_foreground, source_from_cursor};
 use xyai_xiaoyuan_lib::config_cmd::{
     self, home_url_for, normalize_provider_id, select_mascot, supported_poses, AppConfig,
 };
 use xyai_xiaoyuan_lib::secrets_cmd::{
     gateway_file_to_url_and_token, secret_account, validate_secret_key,
 };
-use xyai_xiaoyuan_lib::window_cmd::{chat_position, is_http_url};
+use xyai_xiaoyuan_lib::window_cmd::{chat_position, clamp_pet_position, is_http_url};
 
 #[test]
 fn sixteen_official_poses_are_selectable() {
@@ -74,6 +75,12 @@ fn config_patch_and_defaults() {
     assert_eq!(loaded.grokbot.base_url, "http://127.0.0.1:1340");
     assert_eq!(loaded.mascot_id, "wave");
     assert!(!loaded.lock_pose);
+    assert!(loaded.activity_aware);
+    assert!(!loaded.sound_enabled);
+    assert!(loaded.sfx_enabled);
+    assert_eq!(loaded.idle_threshold_sec, 50);
+    assert!(!loaded.foreground_hints);
+    assert!(!loaded.screen_understanding);
 
     let patched = config_cmd::patch_at_path(
         &path,
@@ -82,6 +89,9 @@ fn config_patch_and_defaults() {
             "petSize": 160,
             "mascotId": "hero",
             "lockPose": true,
+            "activityAware": false,
+            "soundEnabled": true,
+            "soundVolume": 25,
             "providerOptions": { "future-xyai-app": { "baseUrl": "http://127.0.0.1:9999" } }
         }),
     )
@@ -90,6 +100,9 @@ fn config_patch_and_defaults() {
     assert_eq!(patched.pet_size, 160.0);
     assert_eq!(patched.mascot_id, "hero");
     assert!(patched.lock_pose);
+    assert!(!patched.activity_aware);
+    assert!(patched.sound_enabled);
+    assert_eq!(patched.sound_volume, 25);
     assert_eq!(
         patched.provider_options["future-xyai-app"]["baseUrl"],
         "http://127.0.0.1:9999"
@@ -151,4 +164,25 @@ fn home_url_follows_active_provider() {
     assert_eq!(home_url_for(&cfg), "http://127.0.0.1:1340");
     cfg.provider_id = "xyai-studio".into();
     assert_eq!(home_url_for(&cfg), "");
+}
+
+#[test]
+fn activity_source_and_foreground_categories() {
+    assert_eq!(source_from_cursor(200, true), "mouse");
+    assert_eq!(source_from_cursor(200, false), "keyboard");
+    assert_eq!(source_from_cursor(3_000, true), "unknown");
+    assert_eq!(categorize_foreground("Code.exe", "main.rs"), "ide");
+    assert_eq!(categorize_foreground("chrome", "Docs"), "browser");
+    assert_eq!(categorize_foreground("Zoom.exe", "Standup"), "meeting");
+    assert_eq!(categorize_foreground("Spotify.exe", ""), "media");
+    assert_eq!(categorize_foreground("notepad", "notes"), "other");
+}
+
+#[test]
+fn pet_stays_inside_work_area_and_snaps() {
+    let (x, y) = clamp_pet_position(-40, 10, 180, 180, 0, 0, 1280, 800, true);
+    assert_eq!(x, 0);
+    assert!(y >= 0);
+    let (x, _) = clamp_pet_position(1260, 10, 180, 180, 0, 0, 1280, 800, true);
+    assert_eq!(x, 1280 - 180);
 }

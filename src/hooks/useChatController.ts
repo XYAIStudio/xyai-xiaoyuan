@@ -43,6 +43,7 @@ export function useChatController() {
   const sendNowRef = useRef<(text: string) => Promise<void>>(async () => undefined);
   const loadSeq = useRef(0);
   const mounted = useRef(true);
+  const wasDisconnected = useRef(false);
 
   const contextOf = useCallback((cfg: AppConfig): ProviderContext => {
     return {
@@ -107,11 +108,17 @@ export function useChatController() {
         setMessages(history);
         setConnection("connected");
         emitLife("idle");
+        if (wasDisconnected.current) {
+          wasDisconnected.current = false;
+          void tauriApi.emitPetToast("后端已重新连接", "ok");
+        }
       } catch (loadError) {
         if (seq !== loadSeq.current || !mounted.current) return;
         setError(chatErrorText(loadError));
         setConnection("disconnected");
         emitLife("error");
+        wasDisconnected.current = true;
+        void tauriApi.emitPetToast(chatErrorText(loadError).slice(0, 48), "warn");
       }
     },
     [contextOf, emitLife, stop],
@@ -156,6 +163,8 @@ export function useChatController() {
       setError(chatErrorText(initError));
       setConnection("disconnected");
       emitLife("error");
+      wasDisconnected.current = true;
+      void tauriApi.emitPetToast(chatErrorText(initError).slice(0, 48), "warn");
       await tauriApi.showSettings().catch(() => undefined);
     }
   }, [contextOf, emitLife, openAgent]);
@@ -236,6 +245,7 @@ export function useChatController() {
           setConnection("connected");
           emitLife("error");
           handleRef.current = null;
+          void tauriApi.emitPetToast(message.slice(0, 48), "warn");
         },
       });
     },

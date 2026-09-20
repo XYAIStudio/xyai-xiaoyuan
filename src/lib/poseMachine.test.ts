@@ -2,17 +2,21 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { poseForLifecycle, preloadPetPoses, resetPosePreloadCache } from "./mascots";
 import {
+  chatPoseTakesPriority,
   evolveLifecycle,
   isBusyLifecycle,
   nextIdlePose,
   pickFromPool,
   planCrossfade,
+  poseFromActivity,
   poseHintFromUserText,
   posesForLifecycle,
+  resolveCompanionPose,
   resolvePose,
   shouldPauseIdleCycle,
   STREAM_TO_CREATE_MS,
 } from "./poseMachine";
+import type { ActivitySnapshot } from "./activity";
 
 describe("pose pools and lifecycle mapping", () => {
   it("maps app states onto the official pose packs", () => {
@@ -26,6 +30,12 @@ describe("pose pools and lifecycle mapping", () => {
     expect(posesForLifecycle("affection")).toEqual(["hearts"]);
     expect(posesForLifecycle("away")).toEqual(["night"]);
     expect(posesForLifecycle("idle", { hour: 23 })).toEqual(["night"]);
+    expect(posesForLifecycle("idle", { hour: 8 })).toEqual(["hug", "wave"]);
+    expect(posesForLifecycle("idle", { hour: 19 })).toEqual(["hug", "garden"]);
+    expect(posesForLifecycle("idle", { hour: 23, timeOfDayPoses: false })).toEqual([
+      "wave",
+      "hug",
+    ]);
     expect(posesForLifecycle("connecting")).toEqual(["think", "idea"]);
     expect(posesForLifecycle("error")).toEqual(["think", "idea"]);
   });
@@ -77,12 +87,15 @@ describe("idle cycle and transitions", () => {
     expect(shouldPauseIdleCycle({ ...baseGate, manualHoldUntil: 25_000 })).toBe(true);
     expect(isBusyLifecycle("tool")).toBe(true);
     expect(isBusyLifecycle("idle")).toBe(false);
+    expect(chatPoseTakesPriority("streaming")).toBe(true);
+    expect(chatPoseTakesPriority("idle")).toBe(false);
   });
 
   it("cycles idle-friendly poses and stays on night after hours", () => {
     expect(nextIdlePose("wave", { tick: 0 })).toBe("hug");
     expect(nextIdlePose("hug", { tick: 1 })).toBe("wave");
     expect(nextIdlePose("wave", { tick: 0, hour: 23 })).toBe("night");
+    expect(nextIdlePose("wave", { tick: 0, hour: 19 })).toBe("hug");
     expect(planCrossfade("wave", "hug")).toEqual({ from: "wave", to: "hug" });
     expect(planCrossfade("wave", "wave")).toBeNull();
   });
@@ -91,6 +104,122 @@ describe("idle cycle and transitions", () => {
     expect(evolveLifecycle("streaming", STREAM_TO_CREATE_MS - 1)).toBe("streaming");
     expect(evolveLifecycle("streaming", STREAM_TO_CREATE_MS)).toBe("create");
     expect(evolveLifecycle("thinking", STREAM_TO_CREATE_MS)).toBe("thinking");
+  });
+});
+
+describe("activity and companion overlay", () => {
+  const typing: ActivitySnapshot = {
+    idleMs: 200,
+    kind: "typing",
+    source: "keyboard",
+    available: true,
+  };
+  const mouse: ActivitySnapshot = {
+    idleMs: 400,
+    kind: "active",
+    source: "mouse",
+    available: true,
+  };
+  const longIdle: ActivitySnapshot = {
+    idleMs: 500_000,
+    kind: "idle",
+    source: "unknown",
+    available: true,
+  };
+
+  it("maps typing to think/paint and mouse to run/wave", () => {
+    expect(
+      poseFromActivity(typing, {
+        idleThresholdMs: 50_000,
+        longIdleThresholdMs: 420_000,
+      }),
+    ).toBe("think");
+    expect(
+      poseFromActivity(mouse, {
+        idleThresholdMs: 50_000,
+        longIdleThresholdMs: 420_000,
+      }),
+    ).toBe("run");
+    expect(
+      poseFromActivity(longIdle, {
+        idleThresholdMs: 50_000,
+        longIdleThresholdMs: 420_000,
+      }),
+    ).toBe("night");
+  });
+
+  it("lets chat streaming win over typing and respects pose lock", () => {
+    expect(
+      resolveCompanionPose({
+        lifecycle: "streaming",
+        activityAware: true,
+        activity: typing,
+      }),
+    ).toBe("think");
+    expect(
+      resolveCompanionPose({
+        lifecycle: "idle",
+        activityAware: true,
+        activity: mouse,
+      }),
+    ).toBe("run");
+    expect(
+      resolveCompanionPose({
+        lifecycle: "idle",
+        lockPose: true,
+        current: "hero",
+        activityAware: true,
+        activity: typing,
+      }),
+    ).toBe("hero");
+    expect(
+      resolveCompanionPose({
+        lifecycle: "tool",
+        activityAware: true,
+        activity: longIdle,
+      }),
+    ).toBe("run");
+  });
+
+  it("uses pomodoro poses when chat is idle", () => {
+    expect(
+      resolveCompanionPose({
+        lifecycle: "idle",
+        pomodoroPhase: "focus",
+        activityAware: true,
+        activity: mouse,
+      }),
+    ).toBe("think");
+    expect(
+      resolveCompanionPose({
+        lifecycle: "idle",
+        pomodoroPhase: "break",
+      }),
+    ).toBe("garden");
+  });
+
+  it("maps IDE foreground hints when enabled", () => {
+    const ide: ActivitySnapshot = {
+      idleMs: 100,
+      kind: "active",
+      source: "mouse",
+      available: true,
+      foreground: { title: "App", process: "Code.exe", category: "ide" },
+    };
+    expect(
+      poseFromActivity(ide, {
+        idleThresholdMs: 50_000,
+        longIdleThresholdMs: 420_000,
+        foregroundHints: true,
+      }),
+    ).toBe("think");
+    expect(
+      poseFromActivity(ide, {
+        idleThresholdMs: 50_000,
+        longIdleThresholdMs: 420_000,
+        foregroundHints: false,
+      }),
+    ).toBe("run");
   });
 });
 

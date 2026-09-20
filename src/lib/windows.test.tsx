@@ -1,32 +1,16 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DEFAULT_APP_CONFIG } from "./configLogic";
 import PetWindow from "../windows/PetWindow";
 import SettingsWindow from "../windows/SettingsWindow";
 import { PET_POSE_LIST } from "./mascots";
 
-vi.mock("./tauriApi", () => {
+vi.mock("./tauriApi", async () => {
+  const { DEFAULT_APP_CONFIG: defaults } = await import("./configLogic");
   return {
     tauriApi: {
-      loadConfig: vi.fn(async () => ({
-        providerId: "freeos",
-        freeos: { baseUrl: "http://127.0.0.1:8088", username: "" },
-        openxyos: { baseUrl: "http://127.0.0.1:3000", email: "" },
-        xyaiStudio: { baseUrl: "" },
-        grokbot: { baseUrl: "http://127.0.0.1:1340", gatewayJsonPath: "" },
-        providerOptions: {},
-        mascotId: "wave",
-        autoExpression: true,
-        lockPose: false,
-        lastAgentId: null,
-        threadIdByAgent: {},
-        petX: null,
-        petY: null,
-        petSize: 180,
-        shortcutOpenPet: "CmdOrCtrl+Shift+Y",
-        shortcutOpenHome: "CmdOrCtrl+Shift+H",
-        keepWindowsVisible: true,
-      })),
+      loadConfig: vi.fn(async () => ({ ...defaults })),
       saveConfig: vi.fn(async () => undefined),
       patchConfig: vi.fn(async () => undefined),
       getSecret: vi.fn(async () => null),
@@ -36,6 +20,17 @@ vi.mock("./tauriApi", () => {
       showSettings: vi.fn(async () => undefined),
       quitApp: vi.fn(async () => undefined),
       reloadHotkeys: vi.fn(async () => undefined),
+      applyPetWindow: vi.fn(async () => undefined),
+      clampPetToWorkArea: vi.fn(async () => undefined),
+      isChatVisible: vi.fn(async () => false),
+      focusChat: vi.fn(async () => undefined),
+      setAutostart: vi.fn(async () => false),
+      getActivitySnapshot: vi.fn(async () => ({
+        idleMs: 0,
+        kind: "idle",
+        source: "unavailable",
+        available: false,
+      })),
       emitAuthUpdated: vi.fn(async () => undefined),
       emitMascotChanged: vi.fn(async () => undefined),
       listenMascotChanged: vi.fn(async () => () => undefined),
@@ -43,6 +38,12 @@ vi.mock("./tauriApi", () => {
       emitConfigUpdated: vi.fn(async () => undefined),
       listenConfigUpdated: vi.fn(async () => () => undefined),
       listenCheckUpdates: vi.fn(async () => () => undefined),
+      listenPetToast: vi.fn(async () => () => undefined),
+      listenPomodoroToggle: vi.fn(async () => () => undefined),
+      emitPomodoroUpdated: vi.fn(async () => undefined),
+      emitPomodoroToggle: vi.fn(async () => undefined),
+      listenPomodoroUpdated: vi.fn(async () => () => undefined),
+      emitPetToast: vi.fn(async () => undefined),
       importGatewayJson: vi.fn(),
     },
   };
@@ -70,6 +71,17 @@ describe("PetWindow", () => {
     }
     expect(container.querySelectorAll(".pet-menu-poses button")).toHaveLength(16);
     expect(screen.getByRole("button", { name: "锁定姿态" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "拍一拍" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "喂食" })).toBeInTheDocument();
+  });
+
+  it("cycles a playful pose on click without opening chat", async () => {
+    const { tauriApi } = await import("./tauriApi");
+    const { container } = render(<PetWindow />);
+    await screen.findByAltText("挥手问好");
+    fireEvent.click(container.querySelector(".pet-root")!);
+    expect(tauriApi.showChatNearPet).not.toHaveBeenCalled();
+    expect(await screen.findByAltText("比心")).toBeInTheDocument();
   });
 });
 
@@ -92,6 +104,32 @@ describe("SettingsWindow", () => {
     fireEvent.click(await screen.findByRole("button", { name: "桌宠" }));
     expect(screen.getByLabelText("根据对话状态自动切换表情")).toBeChecked();
     expect(screen.getByLabelText("锁定姿态")).not.toBeChecked();
+    expect(screen.getByLabelText("始终置顶")).toBeChecked();
+    expect(screen.getByLabelText("登录时自动启动小元")).not.toBeChecked();
+  });
+
+  it("exposes activity sensing and sound switches on the companion tab", async () => {
+    render(<SettingsWindow />);
+    fireEvent.click(await screen.findByRole("button", { name: "陪伴" }));
+    expect(
+      screen.getByLabelText("活动感知（根据键盘/鼠标空闲切换姿态）"),
+    ).toBeChecked();
+    expect(screen.getByLabelText("开启声音（总开关，默认关闭）")).not.toBeChecked();
+    expect(screen.getByLabelText("音效")).toBeChecked();
+    expect(
+      screen.getByLabelText("理解屏幕内容（实验，默认关闭，本版本不会截屏）"),
+    ).toBeDisabled();
+  });
+
+  it("shows extra shortcuts including click-through and pomodoro", async () => {
+    render(<SettingsWindow />);
+    fireEvent.click(await screen.findByRole("button", { name: "快捷键" }));
+    expect(screen.getByLabelText("打开对话")).toHaveValue(
+      DEFAULT_APP_CONFIG.shortcutOpenChat,
+    );
+    expect(screen.getByLabelText("番茄钟开始/暂停")).toHaveValue(
+      DEFAULT_APP_CONFIG.shortcutPomodoro,
+    );
   });
 
   it("shows version and update check on the about tab", async () => {

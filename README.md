@@ -8,15 +8,17 @@ XYAI 官方桌面伴侣。小元是 XYAI 自有形象：透明置顶桌宠、紧
 
 完整说明在 `docs/`（中文优先），不要只看本 README 的摘要。
 
-| 文档                                        | 内容                                                  |
-| ------------------------------------------- | ----------------------------------------------------- |
-| [文档目录](docs/README.md)                  | 全部文档索引                                          |
-| [快速开始](docs/getting-started.md)         | Node LTS、Rust 1.88+、`npm run tauri dev`、浏览器预览 |
-| [后端对接](docs/backends.md)                | 四个提供者、设置字段、`npm run mock:backends`         |
-| [姿态与动画](docs/poses.md)                 | 16 官方造型、状态映射、锁定与叠化                     |
-| [Windows 安装包](docs/packaging-windows.md) | NSIS CI、Artifacts、更新签名密钥                      |
-| [架构](docs/architecture.md)                | `BackendProvider`，如何加新的 XYAIStudio 后端         |
-| [贡献指南](docs/contributing.md)            | `make check`、PR 约定                                 |
+| 文档                                         | 内容                                                  |
+| -------------------------------------------- | ----------------------------------------------------- |
+| [文档目录](docs/README.md)                   | 全部文档索引                                          |
+| [快速开始](docs/getting-started.md)          | Node LTS、Rust 1.88+、`npm run tauri dev`、浏览器预览 |
+| [后端对接](docs/backends.md)                 | 四个提供者、设置字段、`npm run mock:backends`         |
+| [姿态与动画](docs/poses.md)                  | 16 官方造型、状态映射、锁定与叠化                     |
+| [活动感知与声音](docs/activity-and-sound.md) | 键盘鼠标空闲、音效开关、隐私边界                      |
+| [形象展示](docs/gallery.md)                  | GIF 与 16 静态造型                                    |
+| [Windows 安装包](docs/packaging-windows.md)  | NSIS CI、Artifacts、更新签名密钥                      |
+| [架构](docs/architecture.md)                 | `BackendProvider`，如何加新的 XYAIStudio 后端         |
+| [贡献指南](docs/contributing.md)             | `make check`、PR 约定                                 |
 
 Wiki 同步稿在 [`docs/wiki-seed/`](docs/wiki-seed/)，可复制到 GitHub Wiki：
 
@@ -62,7 +64,22 @@ npm run tauri dev
 
 质量检查：`make check`（前端 lint / `tsc` / Vitest，以及 `cargo test`）。提交前可 `make install-hooks`。
 
-全局快捷键默认：`CmdOrCtrl+Shift+Y` 显示小元，`CmdOrCtrl+Shift+H` 打开当前后端主页。左键点击桌宠打开对话，右键打开菜单（含 16 表情与「锁定姿态」）。托盘可打开小元 / 对话 / 设置 / 检查更新。
+## 功能一览
+
+- 透明置顶桌宠 + 紧凑对话 + 系统托盘，对接 XYAIStudio 各独立后端
+- 16 官方造型：对话生命周期、活动感知、本地时钟、番茄钟共同驱动；**锁定姿态**优先
+- 单击轮换俏皮姿态，双击打开对话；悬停闪光、拖动轻晃；右键「拍一拍 / 喂食」
+- 声音脚手架：总开关默认关，音效/音乐分开关 + 音量 + 安静时段
+- 桌宠外观：大小、透明度、置顶、点击穿透、边缘吸附、按显示器记住位置、开机启动
+- 番茄钟与轻量心情能量条；桌宠旁短气泡提示（重连 / 番茄钟 / 错误），不刷系统通知
+
+全局快捷键默认：`CmdOrCtrl+Shift+Y` 显示小元，`CmdOrCtrl+Shift+H` 打开当前后端主页，`CmdOrCtrl+Shift+C` 打开对话，`CmdOrCtrl+Shift+T` 切换点击穿透，`CmdOrCtrl+Shift+P` 番茄钟。左键单击桌宠轮换姿态，双击打开对话，右键打开菜单（含 16 表情、「拍一拍」与「锁定姿态」）。托盘可打开小元 / 对话 / 番茄钟 / 设置 / 检查更新。
+
+## 形象展示
+
+![小元动态预览](assets/showcase/dynamic/preview.gif)
+
+更多静态造型见 [形象展示](assets/showcase/README.md) 与 [docs/gallery.md](docs/gallery.md)。
 
 ## 对接本机后端
 
@@ -174,7 +191,7 @@ npm install
 npm run tauri dev
 ```
 
-Browser preview (no always-on-top chrome): `npm run dev`, then `http://localhost:1420/?window=pet`. Poses crossfade (~380ms) instead of hard-cutting; all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. A right-click or Settings pick holds until the next automatic state change; **锁定姿态** freezes the current pose.
+Browser preview (no always-on-top chrome): `npm run dev`, then `http://localhost:1420/?window=pet`. Poses crossfade (~380ms) instead of hard-cutting; all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. Single-click cycles a playful pose; double-click opens chat. A right-click or Settings pick holds until the next automatic state change; **锁定姿态** freezes the current pose. Activity sensing (keyboard/mouse idle) and optional sound switches live under Settings → 陪伴; master sound is off by default.
 
 Docs (Chinese-first): [docs/README.md](docs/README.md). Wiki: <https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>. Discussions: <https://github.com/XYAIStudio/xyai-xiaoyuan/discussions>. Contributing: [CONTRIBUTING.md](CONTRIBUTING.md).
 

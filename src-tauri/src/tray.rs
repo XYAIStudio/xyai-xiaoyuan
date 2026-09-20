@@ -11,6 +11,9 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let open_pet = MenuItem::with_id(app, "open_pet", "打开小元", true, None::<&str>)?;
     let open_chat = MenuItem::with_id(app, "open_chat", "打开对话", true, None::<&str>)?;
     let open_home = MenuItem::with_id(app, "open_home", "打开主页", true, None::<&str>)?;
+    let pomodoro = MenuItem::with_id(app, "pomodoro", "番茄钟：开始/暂停", true, None::<&str>)?;
+    let click_through =
+        MenuItem::with_id(app, "click_through", "切换点击穿透", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
     let check_updates = MenuItem::with_id(app, "check_updates", "检查更新", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
@@ -20,6 +23,8 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             &open_pet,
             &open_chat,
             &open_home,
+            &pomodoro,
+            &click_through,
             &settings,
             &check_updates,
             &quit,
@@ -44,6 +49,12 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             }
             "open_home" => {
                 let _ = window_cmd::open_home(app.clone(), None);
+            }
+            "pomodoro" => {
+                let _ = app.emit("pomodoro-toggle", ());
+            }
+            "click_through" => {
+                let _ = window_cmd::toggle_click_through(app.clone());
             }
             "settings" => {
                 let _ = window_cmd::show_settings(app.clone());

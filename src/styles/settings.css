@@ -100,3 +100,36 @@
   display: flex;
   gap: 8px;
 }
+
+.settings-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(90, 210, 255, 0.2);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.settings-fieldset legend {
+  padding: 0 4px;
+  font-size: 13px;
+  color: #9be7ff;
+}
+
+.settings-range {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.settings-range input[type="range"] {
+  width: 100%;
+}
+
+.settings-inline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}

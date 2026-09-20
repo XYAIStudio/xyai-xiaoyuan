@@ -1,11 +1,50 @@
+import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { queuedPreview } from "../lib/messageQueue";
+import {
+  formatRemaining,
+  idlePomodoro,
+  phaseLabelZh,
+  remainingMs,
+  type PomodoroState,
+} from "../lib/pomodoro";
 import { BACKEND_PROVIDERS } from "../lib/providers/registry";
 import { useChatController } from "../hooks/useChatController";
 import { hideCurrentWindow } from "../lib/tauriWindowApi";
 import { tauriApi } from "../lib/tauriApi";
+
+function ChatPomoBar() {
+  const [state, setState] = useState<PomodoroState>(idlePomodoro());
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    void tauriApi
+      .listenPomodoroUpdated<PomodoroState>((next) => setState(next))
+      .then((fn) => {
+        unlisten = fn;
+      });
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => {
+      unlisten?.();
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  return (
+    <div className="chat-pomo">
+      <span>
+        {phaseLabelZh(state.phase)}
+        {state.phase === "idle" ? "" : ` ${formatRemaining(remainingMs(state, now))}`}
+      </span>
+      <button type="button" onClick={() => void tauriApi.emitPomodoroToggle()}>
+        {state.phase === "idle" ? "开始专注" : "结束番茄钟"}
+      </button>
+    </div>
+  );
+}
 
 export default function ChatWindow() {
   const chat = useChatController();
@@ -88,6 +127,7 @@ export default function ChatWindow() {
           </article>
         ))}
       </div>
+      <ChatPomoBar />
       {chat.queue.length > 0 ? (
         <ul className="chat-queue">
           {chat.queue.map((item) => (

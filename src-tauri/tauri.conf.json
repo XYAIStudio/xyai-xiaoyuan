@@ -43,9 +43,9 @@
         "label": "settings",
         "title": "设置",
         "width": 560,
-        "height": 620,
+        "height": 720,
         "visible": false,
-        "resizable": false,
+        "resizable": true,
         "decorations": false,
         "transparent": true,
         "shadow": true
