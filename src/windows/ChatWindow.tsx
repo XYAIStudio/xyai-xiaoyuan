@@ -1,11 +1,104 @@
+import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { queuedPreview } from "../lib/messageQueue";
+import {
+  DEFAULT_POMODORO,
+  formatRemaining,
+  idlePomodoro,
+  phaseLabelZh,
+  remainingMs,
+  skipPhase,
+  togglePomodoro,
+  type PomodoroState,
+} from "../lib/pomodoro";
+import { companionActionFromText } from "../lib/companionLines";
+import { pomodoroSettingsOf } from "../lib/configLogic";
 import { BACKEND_PROVIDERS } from "../lib/providers/registry";
 import { useChatController } from "../hooks/useChatController";
 import { hideCurrentWindow } from "../lib/tauriWindowApi";
 import { tauriApi } from "../lib/tauriApi";
+
+function ChatPomoBar() {
+  const [state, setState] = useState<PomodoroState>(idlePomodoro());
+  const [now, setNow] = useState(() => Date.now());
+  const settingsRef = useRef(DEFAULT_POMODORO);
+
+  useEffect(() => {
+    let disposed = false;
+    const unlisteners: Array<() => void> = [];
+    const keep = (promise: Promise<() => void>) => {
+      void promise.then((fn) => {
+        if (disposed) fn();
+        else unlisteners.push(fn);
+      });
+    };
+    void tauriApi.loadConfig().then((cfg) => {
+      if (!disposed) settingsRef.current = pomodoroSettingsOf(cfg);
+    });
+    keep(
+      tauriApi.listenPomodoroUpdated<PomodoroState>((next) => {
+        if (!disposed) setState(next);
+      }),
+    );
+    keep(
+      tauriApi.listenPomodoroToggle(() => {
+        if (disposed) return;
+        setState((current) => togglePomodoro(current, Date.now(), settingsRef.current));
+      }),
+    );
+    keep(
+      tauriApi.listenPomodoroSkip(() => {
+        if (disposed) return;
+        setState((current) => skipPhase(current, Date.now(), settingsRef.current));
+      }),
+    );
+    const timer = window.setInterval(() => {
+      if (!disposed) setNow(Date.now());
+    }, 1000);
+    return () => {
+      disposed = true;
+      unlisteners.forEach((fn) => fn());
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  return (
+    <div className="chat-pomo">
+      <span>
+        {phaseLabelZh(state.phase)}
+        {state.phase === "idle" ? "" : ` ${formatRemaining(remainingMs(state, now))}`}
+      </span>
+      <div className="chat-pomo-actions">
+        {state.phase !== "idle" ? (
+          <button type="button" onClick={() => void tauriApi.emitPomodoroSkip()}>
+            下一阶段
+          </button>
+        ) : null}
+        <button type="button" onClick={() => void tauriApi.emitPomodoroToggle()}>
+          {state.phase === "idle" ? "开始专注" : "结束番茄钟"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const COMPANION_CHIPS: Array<{ label: string; run: () => void }> = [
+  { label: "拍一拍", run: () => void tauriApi.emitCompanionAction("pat") },
+  { label: "喂食", run: () => void tauriApi.emitCompanionAction("feed") },
+  { label: "开始专注", run: () => void tauriApi.emitPomodoroToggle() },
+  { label: "晚安", run: () => void tauriApi.emitCompanionAction("night") },
+];
+
+function tryCompanionCommand(text: string): boolean {
+  const action = companionActionFromText(text);
+  if (!action) return false;
+  if (action === "pomodoro") void tauriApi.emitPomodoroToggle();
+  else if (action === "skip") void tauriApi.emitPomodoroSkip();
+  else void tauriApi.emitCompanionAction(action);
+  return true;
+}
 
 export default function ChatWindow() {
   const chat = useChatController();
@@ -88,6 +181,16 @@ export default function ChatWindow() {
           </article>
         ))}
       </div>
+      <ChatPomoBar />
+      {chat.messages.length === 0 ? (
+        <div className="chat-chips">
+          {COMPANION_CHIPS.map((chip) => (
+            <button key={chip.label} type="button" onClick={chip.run}>
+              {chip.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {chat.queue.length > 0 ? (
         <ul className="chat-queue">
           {chat.queue.map((item) => (
@@ -100,6 +203,10 @@ export default function ChatWindow() {
         onSubmit={(event) => {
           event.preventDefault();
           const text = chat.composer;
+          if (tryCompanionCommand(text)) {
+            chat.setComposer("");
+            return;
+          }
           chat.setComposer("");
           void chat.send(text);
         }}
@@ -113,6 +220,10 @@ export default function ChatWindow() {
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();
               const text = chat.composer;
+              if (tryCompanionCommand(text)) {
+                chat.setComposer("");
+                return;
+              }
               chat.setComposer("");
               void chat.send(text);
             }

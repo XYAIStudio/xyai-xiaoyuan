@@ -25,7 +25,7 @@
 | 15  | `hero`      | 超级英雄 | `15-超级英雄.png` | 手动点选    |
 | 16  | `night`     | 晚安陪伴 | `16-晚安陪伴.png` | 夜间 / 离开 |
 
-`garden` / `music` / `party` / `hero` 不在自动状态池里，仍可通过设置或右键选用。
+`garden` / `music` / `party` / `hero` 也可由番茄钟、时段待机或手动点选触发。
 
 ## 生命周期 → 姿态池
 
@@ -64,5 +64,7 @@
 - 右键或设置点选姿态会保持到下一次自动状态变化（或 18 秒）。
 - 勾选 **锁定姿态**（`lockPose`）则完全冻结，直到取消锁定；锁定时仍可手动换造型。
 - 设置里也可关闭 **根据对话状态自动切换表情**（`autoExpression`），此时回到默认待机姿势。
+- **活动感知**、番茄钟、本地时钟会叠在同一套状态机上，但不会压过对话流式或锁定。详见 [活动感知与声音](activity-and-sound.md)。
+- 单击轮换俏皮姿态，双击打开对话；悬停闪光，拖动轻晃。右键可「拍一拍 / 喂食 / 晚安」。连续喂食三次会庆祝「吃饱啦」。
 
-相关测试：`src/lib/poseMachine.test.ts`、`src/lib/mascots.test.ts`。
+相关测试：`src/lib/poseMachine.test.ts`、`src/lib/mascots.test.ts`、`src/lib/companion.test.ts`。

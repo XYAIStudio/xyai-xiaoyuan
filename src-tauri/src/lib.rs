@@ -1,6 +1,7 @@
 mod tray;
 pub mod window_cmd;
 
+pub mod activity_cmd;
 pub mod config_cmd;
 pub mod secrets_cmd;
 
@@ -14,6 +15,10 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
         .invoke_handler(tauri::generate_handler![
             config_cmd::load_config,
             config_cmd::save_config,
@@ -30,6 +35,16 @@ pub fn run() {
             window_cmd::show_pet,
             window_cmd::quit_app,
             window_cmd::reload_hotkeys,
+            window_cmd::apply_pet_window,
+            window_cmd::clamp_pet_to_work_area,
+            window_cmd::is_chat_visible,
+            window_cmd::focus_chat,
+            window_cmd::set_pet_click_through,
+            window_cmd::toggle_click_through,
+            window_cmd::set_autostart,
+            window_cmd::is_autostart,
+            window_cmd::set_tray_tooltip,
+            activity_cmd::get_activity_snapshot,
         ])
         .setup(|app| {
             tray::setup(app.handle())?;

@@ -61,10 +61,12 @@
 
 | 能力           | 说明                                                            |
 | -------------- | --------------------------------------------------------------- |
-| 透明置顶桌宠   | 无边框、始终置顶、可拖动；左键打开对话，右键选姿态              |
-| 紧凑对话窗     | Markdown 渲染、流式输出、按当前后端列出智能体                   |
-| 系统托盘       | 打开小元 / 对话 / 设置 / 检查更新                               |
-| 16 官方造型    | 对话生命周期叠化切换（约 380ms），可锁定姿态                    |
+| 透明置顶桌宠   | 无边框、始终置顶、可拖动；单击轮换姿态，双击打开对话            |
+| 紧凑对话窗     | Markdown 渲染、流式输出、按当前后端列出智能体、番茄钟与快捷筹码 |
+| 系统托盘       | 打开小元 / 对话 / 番茄钟 / 拍一拍 / 设置 / 检查更新             |
+| 16 官方造型    | 对话生命周期、活动感知、本地时钟、番茄钟共同驱动；可锁定姿态    |
+| 陪伴桌面       | 拍一拍 / 喂食 / 晚安、心情能量条、桌宠旁短气泡（不刷系统通知）  |
+| 声音脚手架     | 总开关默认关；音效 / 音乐 / 音量 / 安静时段                     |
 | 可插拔后端     | `BackendProvider` 对接 XYAIStudio 独立产品，并支持本机 Grok Bot |
 | Windows 安装包 | GitHub Actions 打 NSIS `setup.exe`                              |
 | 自动更新       | 设置 / 托盘检查更新，源为 GitHub Releases `latest.json`         |
@@ -117,16 +119,21 @@ npm run dev
 
 ### 桌宠与快捷键
 
-| 操作                | 作用                              |
-| ------------------- | --------------------------------- |
-| 左键点击桌宠        | 打开对话窗                        |
-| 右键点击桌宠        | 菜单：16 表情 +「锁定姿态」       |
-| 拖动桌宠            | 移动位置（拖动时暂停待机轮换）    |
-| 托盘                | 打开小元 / 对话 / 设置 / 检查更新 |
-| `CmdOrCtrl+Shift+Y` | 显示小元                          |
-| `CmdOrCtrl+Shift+H` | 打开当前后端主页                  |
+| 操作                | 作用                                           |
+| ------------------- | ---------------------------------------------- |
+| 单击桌宠            | 轮换俏皮姿态                                   |
+| 双击桌宠            | 打开对话窗                                     |
+| 右键点击桌宠        | 菜单：16 表情、拍一拍 / 喂食 / 晚安、锁定姿态  |
+| 拖动桌宠            | 移动位置（靠近边缘可吸附；拖动时暂停待机轮换） |
+| 托盘                | 打开小元 / 对话 / 番茄钟 / 拍一拍 / 设置       |
+| `CmdOrCtrl+Shift+Y` | 显示小元                                       |
+| `CmdOrCtrl+Shift+H` | 打开当前后端主页                               |
+| `CmdOrCtrl+Shift+C` | 打开对话                                       |
+| `CmdOrCtrl+Shift+T` | 切换点击穿透                                   |
+| `CmdOrCtrl+Shift+P` | 番茄钟开始/结束                                |
+| `CmdOrCtrl+Shift+K` | 拍一拍                                         |
 
-快捷键可在 **设置 → 快捷键** 修改。
+快捷键可在 **设置 → 快捷键** 修改。活动感知、声音、番茄钟与安静时段在 **设置 → 陪伴**（声音总开关默认关）。
 
 ### 对接本机后端
 
@@ -171,7 +178,7 @@ npm run mock:backends
 | 创作 / 生成     | 魔法创造、小画家                       |
 | 夜间 / 离开     | 晚安陪伴                               |
 
-流式输出或拖动桌宠时暂停待机轮换。右键或设置点选姿态会保持到下一次自动状态变化；勾选 **锁定姿态** 则完全冻结，直到取消锁定。设置中也可关闭自动表情。常量与状态机见 [docs/poses.md](docs/poses.md)。
+流式输出或拖动桌宠时暂停待机轮换。右键或设置点选姿态会保持到下一次自动状态变化；勾选 **锁定姿态** 则完全冻结，直到取消锁定。设置中也可关闭自动表情。活动感知、番茄钟与本地时钟叠在同一套状态机上，但不会压过对话流式或锁定。常量与状态机见 [docs/poses.md](docs/poses.md)，隐私边界见 [docs/activity-and-sound.md](docs/activity-and-sound.md)。
 
 ### Windows 安装包
 
@@ -229,17 +236,18 @@ make check
 
 完整说明在 `docs/`（中文优先），不要只看本 README 的摘要。
 
-| 文档                                        | 内容                                                  |
-| ------------------------------------------- | ----------------------------------------------------- |
-| [文档目录](docs/README.md)                  | 全部文档索引                                          |
-| [快速开始](docs/getting-started.md)         | Node LTS、Rust 1.88+、`npm run tauri dev`、浏览器预览 |
-| [后端对接](docs/backends.md)                | 四个提供者、设置字段、`npm run mock:backends`         |
-| [姿态与动画](docs/poses.md)                 | 16 官方造型、状态映射、锁定与叠化                     |
-| [形象画廊](docs/gallery.md)                 | 动态 GIF + 16 静态造型预览                            |
-| [Windows 安装包](docs/packaging-windows.md) | NSIS CI、Artifacts、更新签名密钥                      |
-| [架构](docs/architecture.md)                | `BackendProvider`，如何加新的 XYAIStudio 后端         |
-| [贡献指南](docs/contributing.md)            | `make check`、PR 约定                                 |
-| [English](README_EN.md)                     | English landing page                                  |
+| 文档                                         | 内容                                                  |
+| -------------------------------------------- | ----------------------------------------------------- |
+| [文档目录](docs/README.md)                   | 全部文档索引                                          |
+| [快速开始](docs/getting-started.md)          | Node LTS、Rust 1.88+、`npm run tauri dev`、浏览器预览 |
+| [后端对接](docs/backends.md)                 | 四个提供者、设置字段、`npm run mock:backends`         |
+| [姿态与动画](docs/poses.md)                  | 16 官方造型、状态映射、锁定与叠化                     |
+| [活动感知与声音](docs/activity-and-sound.md) | 键盘鼠标空闲、音效开关、隐私边界                      |
+| [形象画廊](docs/gallery.md)                  | 动态 GIF + 16 静态造型预览                            |
+| [Windows 安装包](docs/packaging-windows.md)  | NSIS CI、Artifacts、更新签名密钥                      |
+| [架构](docs/architecture.md)                 | `BackendProvider`，如何加新的 XYAIStudio 后端         |
+| [贡献指南](docs/contributing.md)             | `make check`、PR 约定                                 |
+| [English](README_EN.md)                      | English landing page                                  |
 
 Wiki 同步稿在 [`docs/wiki-seed/`](docs/wiki-seed/)，可复制到 GitHub Wiki：
 

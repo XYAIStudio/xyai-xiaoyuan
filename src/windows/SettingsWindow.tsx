@@ -15,7 +15,7 @@ import {
   type UpdateCheckResult,
 } from "../lib/updates";
 
-type Tab = "backend" | "pet" | "shortcuts" | "about";
+type Tab = "backend" | "pet" | "companion" | "shortcuts" | "about";
 
 export default function SettingsWindow() {
   const [cfg, setCfg] = useState<AppConfig>(DEFAULT_APP_CONFIG);
@@ -72,6 +72,12 @@ export default function SettingsWindow() {
 
   const save = async () => {
     await tauriApi.saveConfig(cfg);
+    try {
+      await tauriApi.setAutostart(cfg.autostart);
+    } catch {
+      /* 浏览器预览或桌面权限不足 */
+    }
+    await tauriApi.applyPetWindow();
     if (cfg.providerId === "freeos" && password) {
       await tauriApi.setSecret("freeos_password", password);
     }
@@ -141,6 +147,7 @@ export default function SettingsWindow() {
           [
             ["backend", "后端"],
             ["pet", "桌宠"],
+            ["companion", "陪伴"],
             ["shortcuts", "快捷键"],
             ["about", "关于"],
           ] as const
@@ -376,9 +383,72 @@ export default function SettingsWindow() {
             锁定姿态
           </label>
           <p className="settings-note">
-            点击缩略图选择默认待机姿势（16
-            个官方造型）。锁定后自动表情与待机轮换都会暂停，手动点选仍可更换当前造型。
+            单击桌宠会轮换俏皮姿态，双击打开对话。拖动靠近屏幕边缘可吸附。锁定后自动表情、活动感知与待机轮换都会暂停，手动点选仍可更换当前造型。
           </p>
+          <label className="settings-range">
+            大小（{cfg.petSize}px）
+            <input
+              type="range"
+              min={80}
+              max={224}
+              value={cfg.petSize}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, petSize: Number(event.target.value) }))
+              }
+            />
+          </label>
+          <label className="settings-range">
+            透明度（{cfg.petOpacity}%）
+            <input
+              type="range"
+              min={40}
+              max={100}
+              value={cfg.petOpacity}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, petOpacity: Number(event.target.value) }))
+              }
+            />
+          </label>
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={cfg.alwaysOnTop}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, alwaysOnTop: event.target.checked }))
+              }
+            />
+            始终置顶
+          </label>
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={cfg.clickThrough}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, clickThrough: event.target.checked }))
+              }
+            />
+            点击穿透（可用快捷键或托盘关闭）
+          </label>
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={cfg.edgeSnap}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, edgeSnap: event.target.checked }))
+              }
+            />
+            拖到边缘时吸附，并保持在屏幕内
+          </label>
+          <label className="settings-check">
+            <input
+              type="checkbox"
+              checked={cfg.autostart}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, autostart: event.target.checked }))
+              }
+            />
+            登录时自动启动小元
+          </label>
           <div className="pose-grid">
             {PET_POSE_LIST.map((pose) => (
               <button
@@ -403,6 +473,251 @@ export default function SettingsWindow() {
           </div>
         </section>
       ) : null}
+      {tab === "companion" ? (
+        <section className="settings-body">
+          <fieldset className="settings-fieldset">
+            <legend>活动感知</legend>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.activityAware}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, activityAware: event.target.checked }))
+                }
+              />
+              活动感知（根据键盘/鼠标空闲切换姿态）
+            </label>
+            <p className="settings-note">
+              只读取「上次输入距今多久」和可选的前台窗口标题，默认不截屏、不上传。对话流式
+              / 工具忙碌 / 锁定姿态 优先于活动姿态。
+            </p>
+            <label className="settings-range">
+              空闲阈值（{cfg.idleThresholdSec} 秒）
+              <input
+                type="range"
+                min={10}
+                max={180}
+                value={cfg.idleThresholdSec}
+                onChange={(event) =>
+                  setCfg((c) => ({
+                    ...c,
+                    idleThresholdSec: Number(event.target.value),
+                  }))
+                }
+              />
+            </label>
+            <label className="settings-range">
+              长空闲（晚安）（{Math.round(cfg.longIdleThresholdSec / 60)} 分钟）
+              <input
+                type="range"
+                min={120}
+                max={1200}
+                step={30}
+                value={cfg.longIdleThresholdSec}
+                onChange={(event) =>
+                  setCfg((c) => ({
+                    ...c,
+                    longIdleThresholdSec: Number(event.target.value),
+                  }))
+                }
+              />
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.foregroundHints}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, foregroundHints: event.target.checked }))
+                }
+              />
+              前台应用提示（IDE / 浏览器 / 会议 / 媒体，Windows 可用）
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.timeOfDayPoses}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, timeOfDayPoses: event.target.checked }))
+                }
+              />
+              按本地时间问候（清晨挥手、夜间晚安陪伴）
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.moodMeterEnabled}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, moodMeterEnabled: event.target.checked }))
+                }
+              />
+              心情能量条（空闲下降，互动/对话回升）
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.companionBubbles}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, companionBubbles: event.target.checked }))
+                }
+              />
+              偶尔说一句（空闲气泡，打招呼仍会显示）
+            </label>
+          </fieldset>
+          <fieldset className="settings-fieldset">
+            <legend>声音</legend>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.soundEnabled}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, soundEnabled: event.target.checked }))
+                }
+              />
+              开启声音（总开关，默认关闭）
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.sfxEnabled}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, sfxEnabled: event.target.checked }))
+                }
+              />
+              音效
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.musicEnabled}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, musicEnabled: event.target.checked }))
+                }
+              />
+              背景音乐（需自行放入无版权素材）
+            </label>
+            <label className="settings-range">
+              音量（{cfg.soundVolume}）
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={cfg.soundVolume}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, soundVolume: Number(event.target.value) }))
+                }
+              />
+            </label>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.quietHoursEnabled}
+                onChange={(event) =>
+                  setCfg((c) => ({ ...c, quietHoursEnabled: event.target.checked }))
+                }
+              />
+              安静时段（不播放音效/音乐）
+            </label>
+            <div className="settings-inline">
+              <label>
+                开始
+                <input
+                  value={cfg.quietHoursStart}
+                  onChange={(event) =>
+                    setCfg((c) => ({ ...c, quietHoursStart: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                结束
+                <input
+                  value={cfg.quietHoursEnd}
+                  onChange={(event) =>
+                    setCfg((c) => ({ ...c, quietHoursEnd: event.target.value }))
+                  }
+                />
+              </label>
+            </div>
+          </fieldset>
+          <fieldset className="settings-fieldset">
+            <legend>番茄钟</legend>
+            <div className="settings-inline">
+              <label>
+                专注（分钟）
+                <input
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={cfg.pomodoroFocusMin}
+                  onChange={(event) =>
+                    setCfg((c) => ({
+                      ...c,
+                      pomodoroFocusMin: Number(event.target.value),
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                短休息
+                <input
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={cfg.pomodoroBreakMin}
+                  onChange={(event) =>
+                    setCfg((c) => ({
+                      ...c,
+                      pomodoroBreakMin: Number(event.target.value),
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                长休息
+                <input
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={cfg.pomodoroLongBreakMin}
+                  onChange={(event) =>
+                    setCfg((c) => ({
+                      ...c,
+                      pomodoroLongBreakMin: Number(event.target.value),
+                    }))
+                  }
+                />
+              </label>
+            </div>
+            <p className="settings-note">
+              托盘「番茄钟：开始/暂停」或快捷键控制。专注时认真思考，休息时园艺/音乐。
+            </p>
+          </fieldset>
+          <fieldset className="settings-fieldset">
+            <legend>屏幕理解（未启用）</legend>
+            <label className="settings-check">
+              <input
+                type="checkbox"
+                checked={cfg.screenUnderstanding}
+                disabled
+                onChange={(event) =>
+                  setCfg((c) => ({
+                    ...c,
+                    screenUnderstanding: event.target.checked,
+                  }))
+                }
+              />
+              理解屏幕内容（实验，默认关闭，本版本不会截屏）
+            </label>
+            <p className="settings-note">
+              以后若开放，会单独征求同意，并默认关闭。当前开关不可用，以免误开。
+            </p>
+          </fieldset>
+          <div className="settings-actions">
+            <button type="button" onClick={() => void save()}>
+              保存
+            </button>
+          </div>
+        </section>
+      ) : null}
       {tab === "shortcuts" ? (
         <section className="settings-body">
           <label>
@@ -420,6 +735,45 @@ export default function SettingsWindow() {
               value={cfg.shortcutOpenHome}
               onChange={(event) =>
                 setCfg((c) => ({ ...c, shortcutOpenHome: event.target.value }))
+              }
+            />
+          </label>
+          <label>
+            打开对话
+            <input
+              value={cfg.shortcutOpenChat}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, shortcutOpenChat: event.target.value }))
+              }
+            />
+          </label>
+          <label>
+            切换点击穿透
+            <input
+              value={cfg.shortcutToggleClickThrough}
+              onChange={(event) =>
+                setCfg((c) => ({
+                  ...c,
+                  shortcutToggleClickThrough: event.target.value,
+                }))
+              }
+            />
+          </label>
+          <label>
+            番茄钟开始/暂停
+            <input
+              value={cfg.shortcutPomodoro}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, shortcutPomodoro: event.target.value }))
+              }
+            />
+          </label>
+          <label>
+            拍一拍
+            <input
+              value={cfg.shortcutPat}
+              onChange={(event) =>
+                setCfg((c) => ({ ...c, shortcutPat: event.target.value }))
               }
             />
           </label>

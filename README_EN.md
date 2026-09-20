@@ -63,10 +63,12 @@ Xiaoyuan is **XYAI’s own mascot**. Official poses ship in-repo.
 
 | Capability         | Notes                                                                        |
 | ------------------ | ---------------------------------------------------------------------------- |
-| Always-on-top pet  | Frameless, draggable; left-click opens chat, right-click picks a pose        |
-| Compact chat       | Markdown, streaming replies, agents from the selected backend                |
-| System tray        | Open pet / chat / settings / check for updates                               |
-| 16 official poses  | Lifecycle-driven crossfade (~380ms); optional pose lock                      |
+| Always-on-top pet  | Frameless, draggable; single-click cycles a pose, double-click opens chat    |
+| Compact chat       | Markdown, streaming replies, agents, pomodoro bar, companion chips           |
+| System tray        | Open pet / chat / pomodoro / pat / settings / check for updates              |
+| 16 official poses  | Lifecycle, activity, clock, and pomodoro; optional pose lock                 |
+| Companion desktop  | Pat / feed / night, mood meter, pet-side toasts (not OS spam)                |
+| Sound scaffold     | Master off by default; sfx / music / volume / quiet hours                    |
 | Pluggable backends | `BackendProvider` for first-party XYAIStudio products, plus a local Grok Bot |
 | Windows installer  | GitHub Actions NSIS `setup.exe`                                              |
 | Auto-update        | Settings / tray → GitHub Releases `latest.json`                              |
@@ -107,9 +109,9 @@ See [docs/getting-started.md](docs/getting-started.md).
 
 ## Usage
 
-- Left-click the pet to chat; right-click for 16 poses and **锁定姿态** (lock pose).
-- Tray: open pet / chat / settings / check for updates.
-- Shortcuts: `CmdOrCtrl+Shift+Y` shows Xiaoyuan; `CmdOrCtrl+Shift+H` opens the current backend home page.
+- Single-click cycles a playful pose; double-click opens chat; right-click for 16 poses, 拍一拍 / 喂食 / 晚安, and **锁定姿态** (lock pose).
+- Tray: open pet / chat / pomodoro / pat / settings / check for updates.
+- Shortcuts: `CmdOrCtrl+Shift+Y` shows Xiaoyuan; `CmdOrCtrl+Shift+C` opens chat; `CmdOrCtrl+Shift+P` pomodoro; `CmdOrCtrl+Shift+K` pat. Activity and sound live under **Settings → 陪伴** (master sound off by default).
 
 Connect a live product, then fill **Settings → Backend**. Without a live backend:
 
@@ -144,6 +146,7 @@ Chinese-first index: [docs/README.md](docs/README.md)
 | [Getting started](docs/getting-started.md)     | Install and run                |
 | [Backends](docs/backends.md)                   | Four providers + mock gateways |
 | [Poses](docs/poses.md)                         | 16 official poses              |
+| [Activity & sound](docs/activity-and-sound.md) | Idle sensing, sfx, privacy     |
 | [Gallery](docs/gallery.md)                     | GIF + stills                   |
 | [Windows packaging](docs/packaging-windows.md) | NSIS CI and updater keys       |
 | [Architecture](docs/architecture.md)           | `BackendProvider` plugin model |

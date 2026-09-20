@@ -1,8 +1,17 @@
 import { invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
 
+import {
+  ACTIVITY_POLL_MS,
+  browserActivitySnapshot,
+  snapshotFromRaw,
+  type ActivitySnapshot,
+  type InputSource,
+} from "./activity";
 import { DEFAULT_APP_CONFIG, normalizeLoadedConfig } from "./configLogic";
 import type { PetPoseId } from "./mascots";
+import { makeToast, type PetToast, type ToastTone } from "./notifications";
+import type { CompanionAction } from "./companionLines";
 import type { AppConfig } from "./types";
 
 const STORAGE_KEY = "xyai-xiaoyuan-config";
@@ -132,6 +141,67 @@ export const tauriApi = {
   showSettings: () => (isTauri() ? invoke("show_settings") : Promise.resolve()),
   quitApp: () => (isTauri() ? invoke("quit_app") : Promise.resolve()),
   reloadHotkeys: () => (isTauri() ? invoke("reload_hotkeys") : Promise.resolve()),
+  applyPetWindow: () => (isTauri() ? invoke("apply_pet_window") : Promise.resolve()),
+  clampPetToWorkArea: (snap?: boolean) =>
+    isTauri() ? invoke("clamp_pet_to_work_area", { snap }) : Promise.resolve(),
+  isChatVisible: async () => {
+    if (!isTauri()) return false;
+    try {
+      return await invoke<boolean>("is_chat_visible");
+    } catch {
+      return false;
+    }
+  },
+  focusChat: () => (isTauri() ? invoke("focus_chat") : Promise.resolve()),
+  setPetClickThrough: (enabled: boolean) =>
+    isTauri() ? invoke("set_pet_click_through", { enabled }) : Promise.resolve(),
+  toggleClickThrough: () =>
+    isTauri() ? invoke<boolean>("toggle_click_through") : Promise.resolve(false),
+  setAutostart: async (enabled: boolean) => {
+    if (!isTauri()) return enabled;
+    return invoke<boolean>("set_autostart", { enabled });
+  },
+  isAutostart: async () => {
+    if (!isTauri()) return false;
+    try {
+      return await invoke<boolean>("is_autostart");
+    } catch {
+      return false;
+    }
+  },
+  setTrayTooltip: async (text: string) => {
+    if (!isTauri()) return;
+    try {
+      await invoke("set_tray_tooltip", { text });
+    } catch {
+      /* tray may be missing in tests */
+    }
+  },
+  getActivitySnapshot: async (
+    options: { includeForeground?: boolean; idleThresholdMs?: number } = {},
+  ): Promise<ActivitySnapshot> => {
+    const idleMs =
+      options.idleThresholdMs ?? DEFAULT_APP_CONFIG.idleThresholdSec * 1000;
+    if (!isTauri()) return browserActivitySnapshot(idleMs);
+    try {
+      const raw = await invoke<{
+        idleMs: number;
+        source: InputSource;
+        available: boolean;
+        foreground?: { title: string; process: string; category?: string };
+      }>("get_activity_snapshot", {
+        includeForeground: options.includeForeground ?? false,
+      });
+      return snapshotFromRaw(raw, idleMs);
+    } catch {
+      return {
+        idleMs: 0,
+        kind: "idle",
+        source: "unavailable",
+        available: false,
+      };
+    }
+  },
   importGatewayJson: (path: string) =>
     isTauri()
       ? invoke<{ baseUrl: string; hasToken: boolean }>("import_gateway_json", { path })
@@ -148,4 +218,34 @@ export const tauriApi = {
   emitConfigUpdated: () => emitEvent("config-updated"),
   listenConfigUpdated: (handler: () => void) => listenEvent("config-updated", handler),
   listenCheckUpdates: (handler: () => void) => listenEvent("check-updates", handler),
+  emitPetToast: (text: string, tone: ToastTone = "info") =>
+    emitEvent("pet-toast", makeToast(text, tone)),
+  listenPetToast: (handler: (toast: PetToast) => void) =>
+    listenEvent<{ text?: string; tone?: ToastTone; id?: string }>(
+      "pet-toast",
+      (raw) => {
+        if (raw && typeof raw.text === "string") {
+          handler({
+            id: raw.id || makeToast(raw.text, raw.tone).id,
+            text: raw.text,
+            tone: raw.tone ?? "info",
+          });
+        }
+      },
+    ),
+  emitPomodoroToggle: () => emitEvent("pomodoro-toggle"),
+  listenPomodoroToggle: (handler: () => void) =>
+    listenEvent("pomodoro-toggle", handler),
+  emitPomodoroSkip: () => emitEvent("pomodoro-skip"),
+  listenPomodoroSkip: (handler: () => void) => listenEvent("pomodoro-skip", handler),
+  emitPomodoroUpdated: (payload: unknown) => emitEvent("pomodoro-updated", payload),
+  listenPomodoroUpdated: <T>(handler: (payload: T) => void) =>
+    listenEvent<T>("pomodoro-updated", handler),
+  emitCompanionAction: (action: CompanionAction) =>
+    emitEvent("companion-action", action),
+  listenCompanionAction: (handler: (action: CompanionAction) => void) =>
+    listenEvent<CompanionAction>("companion-action", (raw) => {
+      if (raw === "pat" || raw === "feed" || raw === "night") handler(raw);
+    }),
+  activityPollMs: ACTIVITY_POLL_MS,
 };

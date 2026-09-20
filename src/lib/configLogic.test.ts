@@ -14,6 +14,9 @@ describe("config defaults", () => {
     expect(DEFAULT_APP_CONFIG.openxyos.baseUrl).toBe("http://127.0.0.1:3000");
     expect(DEFAULT_APP_CONFIG.grokbot.baseUrl).toBe("http://127.0.0.1:1340");
     expect(DEFAULT_APP_CONFIG.lockPose).toBe(false);
+    expect(DEFAULT_APP_CONFIG.activityAware).toBe(true);
+    expect(DEFAULT_APP_CONFIG.soundEnabled).toBe(false);
+    expect(DEFAULT_APP_CONFIG.alwaysOnTop).toBe(true);
     const loaded = normalizeLoadedConfig({
       providerId: "not-a-backend",
       mascotId: "nope",

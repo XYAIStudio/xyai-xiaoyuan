@@ -232,6 +232,8 @@ export function poseForLifecycle(
     lockPose?: boolean;
     tick?: number;
     current?: PetPoseId;
+    timeOfDayPoses?: boolean;
+    moodEnergy?: number;
   } = {},
 ): PetPoseId {
   return resolvePose(life, options);

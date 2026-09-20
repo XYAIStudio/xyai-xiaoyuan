@@ -6,17 +6,23 @@
 
 ## 目录
 
-| 路径                                  | 职责                                     |
-| ------------------------------------- | ---------------------------------------- |
-| `src/windows/`                        | 桌宠 / 对话 / 设置三个窗口               |
-| `src/lib/providers/`                  | 后端插件：类型、注册表、各产品实现、HTTP |
-| `src/lib/poseMachine.ts`              | 姿态状态机                               |
-| `src/lib/mascots.ts`                  | 16 官方造型目录与预加载                  |
-| `src/lib/updates.ts`                  | 检查 / 安装更新                          |
-| `scripts/mock-backends.mjs`           | 本机模拟 FreeOS / openXYOS / Grok Bot    |
-| `src-tauri/`                          | Rust：窗口、托盘、配置、钥匙串、快捷键   |
-| `src-tauri/capabilities/default.json` | 窗口权限（含 `updater` / `http`）        |
-| `assets/mascot/`                      | 官方画源文件                             |
+| 路径                                  | 职责                                         |
+| ------------------------------------- | -------------------------------------------- |
+| `src/windows/`                        | 桌宠 / 对话 / 设置三个窗口                   |
+| `src/lib/providers/`                  | 后端插件：类型、注册表、各产品实现、HTTP     |
+| `src/lib/poseMachine.ts`              | 姿态状态机（含活动 / 番茄钟 / 时段）         |
+| `src/lib/activity.ts`                 | 空闲分类、前台应用粗分类                     |
+| `src/lib/audio.ts`                    | `playSfx` / 安静时段                         |
+| `src/lib/companionLines.ts`           | 气泡文案、口令、欢迎回来                     |
+| `src/lib/pomodoro.ts` / `mood.ts`     | 番茄钟与心情能量                             |
+| `src/lib/mascots.ts`                  | 16 官方造型目录与预加载                      |
+| `src/lib/updates.ts`                  | 检查 / 安装更新                              |
+| `scripts/mock-backends.mjs`           | 本机模拟 FreeOS / openXYOS / Grok Bot        |
+| `src-tauri/`                          | Rust：窗口、托盘、配置、钥匙串、快捷键、空闲 |
+| `assets/audio/`                       | 音效 / 音乐占位                              |
+| `assets/showcase/`                    | README 画廊用静态 + GIF                      |
+| `src-tauri/capabilities/default.json` | 窗口权限（含 `updater` / `http`）            |
+| `assets/mascot/`                      | 官方画源文件                                 |
 
 三个窗口标签：`pet`、`chat`、`settings`。浏览器预览用 `?window=` 选择同一套 React 入口。
 
@@ -60,12 +66,13 @@
 
 ## Rust 侧
 
-| 模块             | 作用                                              |
-| ---------------- | ------------------------------------------------- |
-| `config_cmd.rs`  | 读写 `AppConfig`（含 `lockPose`）                 |
-| `secrets_cmd.rs` | 发布构建走系统钥匙串；debug 写 `dev-secrets.json` |
-| `window_cmd.rs`  | 显示 / 拖动窗口                                   |
-| `tray.rs`        | 托盘：打开对话、设置、检查更新                    |
+| 模块              | 作用                                              |
+| ----------------- | ------------------------------------------------- |
+| `config_cmd.rs`   | 读写 `AppConfig`（含 `lockPose`、活动/声音开关）  |
+| `activity_cmd.rs` | 上次输入、Windows 前台窗口粗分类                  |
+| `secrets_cmd.rs`  | 发布构建走系统钥匙串；debug 写 `dev-secrets.json` |
+| `window_cmd.rs`   | 显示 / 拖动 / 边缘吸附 / 开机启动 / 点击穿透      |
+| `tray.rs`         | 托盘：对话、番茄钟、拍一拍/喂食、点击穿透、设置   |
 
 前端通过 `src/lib/tauriApi.ts` 调用。非 Tauri 环境（浏览器预览）走内存实现。
 
