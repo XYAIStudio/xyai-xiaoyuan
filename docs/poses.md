@@ -1,6 +1,6 @@
 # 姿态与动画
 
-小元有 **16 个官方造型**。源文件在 `assets/mascot/poses/`（中文文件名），界面使用 `public/mascots/` 下的英文文件名 PNG。设置与桌宠右键菜单均可点选。
+小元有 **16 个官方造型**。源文件在 `assets/mascot/poses/`（中文文件名），界面使用 `public/mascots/` 下的英文文件名 PNG。仓库展示副本（含动态 GIF）见 [形象画廊](gallery.md) 与 [`assets/showcase/`](../assets/showcase/README.md)。设置与桌宠右键菜单均可点选。
 
 实现：`src/lib/mascots.ts`（目录与预加载）、`src/lib/poseMachine.ts`（状态机）、`src/windows/PetWindow.tsx`（双层 CSS 叠化）。
 
