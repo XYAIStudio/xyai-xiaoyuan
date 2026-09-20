@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            args: --bundles nsis,msi
+            args: --bundles nsis
           - platform: ubuntu-22.04
             args: --bundles appimage,deb
           - platform: macos-latest
@@ -56,7 +56,7 @@ jobs:
         with:
           tagName: app-v__VERSION__
           releaseName: "XYAI精灵小元 v__VERSION__"
-          releaseBody: "官方桌面伴侣安装包。Windows 请下载 NSIS setup.exe 或 MSI。"
+          releaseBody: "官方桌面伴侣安装包。Windows 请下载 NSIS setup.exe。"
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

@@ -74,11 +74,12 @@ npm run mock:backends
 
 ## Windows 安装包
 
-本仓库已配置 NSIS（`setup.exe`）与 MSI。Linux 云主机不能签出 Windows 安装包，请走 GitHub Actions：
+本仓库 Windows 安装包以 **NSIS**（`setup.exe`）为准。Linux 云主机不能签出 Windows 安装包，请走 GitHub Actions：
 
-- PR / `cursor/**` 分支：工作流 **Windows installers**（`.github/workflows/windows.yml`）在 `windows-latest` 构建。NSIS 产物在 Artifacts `xyai-xiaoyuan-windows-x64-nsis`（Windows 安装包文件名用 ASCII `XYAI Xiaoyuan`，应用内标题仍是中文）。MSI 若 WiX 失败会单独跳过。
-- 本机若已是 Windows：`npx tauri build --bundles nsis,msi`
+- PR / `cursor/**` 分支：工作流 **Windows installers**（`.github/workflows/windows.yml`）在 `windows-latest` 只打 NSIS。产物 Artifacts 名 `xyai-xiaoyuan-windows-x64-nsis`。安装包文件名用 ASCII `XYAI Xiaoyuan`（`tauri.windows.conf.json`），应用内窗口标题仍是中文。
+- 本机若已是 Windows：`npx tauri build --bundles nsis`
 - 图标来自小元官方画（`src-tauri/icons/`，`assets/mascot/icon-source.png`）
+- MSI / WiX 未进 CI：`light.exe` 会因中文产品名路径失败。需要 MSI 时请在本机 Windows 上用 ASCII productName 自行 `npx tauri build --bundles msi`
 
 未配置更新签名密钥时，CI 仍会打出安装包，只是不含 updater 增量包。
 
@@ -156,4 +157,4 @@ npm run tauri dev
 
 Browser preview (no always-on-top chrome): `npm run dev`, then `http://localhost:1420/?window=pet`. Poses crossfade (~380ms) instead of hard-cutting; all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. A right-click or Settings pick holds until the next automatic state change; **锁定姿态** freezes the current pose.
 
-Without a live backend, `npm run mock:backends` serves FreeOS `:18088`, openXYOS `:13000`, and Grok Bot `:11340`. Windows NSIS/MSI installers are built on GitHub Actions (`windows-latest`); check the **Windows installers** workflow artifacts. Auto-update uses GitHub Releases `latest.json` — add `TAURI_SIGNING_PRIVATE_KEY` before the first public release (see the Chinese checklist).
+Without a live backend, `npm run mock:backends` serves FreeOS `:18088`, openXYOS `:13000`, and Grok Bot `:11340`. Windows NSIS installers are built on GitHub Actions (`windows-latest`); check the **Windows installers** workflow artifact `xyai-xiaoyuan-windows-x64-nsis`. Auto-update uses GitHub Releases `latest.json` — add `TAURI_SIGNING_PRIVATE_KEY` before the first public release (see the Chinese checklist).

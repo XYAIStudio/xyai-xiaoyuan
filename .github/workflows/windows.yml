@@ -6,6 +6,10 @@ on:
     branches: [main, "cursor/**"]
   workflow_dispatch:
 
+concurrency:
+  group: windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -28,7 +32,7 @@ jobs:
       - name: Install JS deps
         run: npm ci
 
-      - name: Build NSIS and MSI
+      - name: Build NSIS
         shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -36,14 +40,14 @@ jobs:
         run: |
           EXTRA=()
           if [ -z "${TAURI_SIGNING_PRIVATE_KEY}" ]; then
-            echo "No TAURI_SIGNING_PRIVATE_KEY secret; building unsigned installers (no updater artifacts)."
+            echo "No TAURI_SIGNING_PRIVATE_KEY secret; building unsigned NSIS (no updater artifacts)."
             EXTRA+=(--config '{"bundle":{"createUpdaterArtifacts":false}}')
           fi
-          # WiX/MSI can fail on some runners; NSIS is the supported Windows installer.
-          if ! npx tauri build --bundles nsis,msi "${EXTRA[@]}"; then
-            echo "MSI bundle failed; retrying NSIS only."
-            npx tauri build --bundles nsis "${EXTRA[@]}"
-          fi
+          # NSIS only: WiX light.exe fails on this runner with a Chinese MSI filename.
+          # Windows packages use ASCII productName from tauri.windows.conf.json.
+          npx tauri build --bundles nsis "${EXTRA[@]}"
+          echo "NSIS output:"
+          ls -la src-tauri/target/release/bundle/nsis || true
 
       - name: Upload NSIS installer
         uses: actions/upload-artifact@v4
@@ -51,11 +55,3 @@ jobs:
           name: xyai-xiaoyuan-windows-x64-nsis
           if-no-files-found: error
           path: src-tauri/target/release/bundle/nsis/*
-
-      - name: Upload MSI installer
-        if: success() || failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xyai-xiaoyuan-windows-x64-msi
-          if-no-files-found: ignore
-          path: src-tauri/target/release/bundle/msi/*
