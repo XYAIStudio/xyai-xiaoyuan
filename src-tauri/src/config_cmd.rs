@@ -1,0 +1,271 @@
+use std::{
+    collections::HashMap,
+    fs,
+    path::Path,
+    sync::Mutex,
+};
+
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde_json::Value;
+use tauri::{AppHandle, Manager};
+
+const CONFIG_FILE_NAME: &str = "config.json";
+static CONFIG_WRITE_LOCK: Mutex<()> = Mutex::new(());
+
+const POSES: &[&str] = &[
+    "wave", "thumbs", "hearts", "idea", "think", "run", "celebrate", "explore", "magic",
+    "garden", "music", "paint", "party", "hug", "hero", "night",
+];
+
+/// Known built-in ids: `freeos`, `openxyos`, `xyai-studio`, `grokbot`.
+/// Stored as a string so later XYAIStudio backends can be added without a
+/// Rust enum rewrite (register the plugin on the frontend, persist options here).
+pub fn normalize_provider_id(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        "freeos".into()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct NestedUrlUser {
+    pub base_url: String,
+    pub username: String,
+}
+
+impl Default for NestedUrlUser {
+    fn default() -> Self {
+        Self {
+            base_url: "http://127.0.0.1:8088".into(),
+            username: String::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct NestedUrlEmail {
+    pub base_url: String,
+    pub email: String,
+}
+
+impl Default for NestedUrlEmail {
+    fn default() -> Self {
+        Self {
+            base_url: "http://127.0.0.1:3000".into(),
+            email: String::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct NestedUrl {
+    pub base_url: String,
+}
+
+impl Default for NestedUrl {
+    fn default() -> Self {
+        Self {
+            base_url: String::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct GrokBotConfig {
+    pub base_url: String,
+    pub gateway_json_path: String,
+}
+
+impl Default for GrokBotConfig {
+    fn default() -> Self {
+        Self {
+            base_url: "http://127.0.0.1:1340".into(),
+            gateway_json_path: String::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct AppConfig {
+    pub provider_id: String,
+    pub freeos: NestedUrlUser,
+    pub openxyos: NestedUrlEmail,
+    pub xyai_studio: NestedUrl,
+    pub grokbot: GrokBotConfig,
+    /// Opaque per-provider JSON for backends added later without dedicated structs.
+    pub provider_options: HashMap<String, Value>,
+    pub mascot_id: String,
+    pub auto_expression: bool,
+    pub last_agent_id: Option<String>,
+    pub thread_id_by_agent: HashMap<String, String>,
+    pub pet_x: Option<f64>,
+    pub pet_y: Option<f64>,
+    pub pet_size: f64,
+    pub shortcut_open_pet: String,
+    pub shortcut_open_home: String,
+    pub keep_windows_visible: bool,
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        Self {
+            provider_id: "freeos".into(),
+            freeos: NestedUrlUser::default(),
+            openxyos: NestedUrlEmail::default(),
+            xyai_studio: NestedUrl::default(),
+            grokbot: GrokBotConfig::default(),
+            provider_options: HashMap::new(),
+            mascot_id: "wave".into(),
+            auto_expression: true,
+            last_agent_id: None,
+            thread_id_by_agent: HashMap::new(),
+            pet_x: None,
+            pet_y: None,
+            pet_size: 180.0,
+            shortcut_open_pet: "CmdOrCtrl+Shift+Y".into(),
+            shortcut_open_home: "CmdOrCtrl+Shift+H".into(),
+            keep_windows_visible: true,
+        }
+    }
+}
+
+pub fn supported_poses() -> &'static [&'static str] {
+    POSES
+}
+
+pub fn select_mascot(cfg: &mut AppConfig, mascot_id: &str) -> Result<(), String> {
+    if POSES.contains(&mascot_id) {
+        cfg.mascot_id = mascot_id.to_string();
+        Ok(())
+    } else {
+        Err(format!("unsupported pose: {mascot_id}"))
+    }
+}
+
+pub fn home_url_for(cfg: &AppConfig) -> String {
+    let fallback = match cfg.provider_id.as_str() {
+        "openxyos" => "http://127.0.0.1:3000",
+        "xyai-studio" => "",
+        "grokbot" => "http://127.0.0.1:1340",
+        _ => "http://127.0.0.1:8088",
+    };
+    let chosen = match cfg.provider_id.as_str() {
+        "openxyos" => cfg.openxyos.base_url.trim(),
+        "xyai-studio" => cfg.xyai_studio.base_url.trim(),
+        "grokbot" => cfg.grokbot.base_url.trim(),
+        _ => cfg.freeos.base_url.trim(),
+    };
+    if chosen.is_empty() {
+        fallback.to_string()
+    } else {
+        chosen.trim_end_matches('/').to_string()
+    }
+}
+
+pub fn load_from_path(path: &Path) -> Result<AppConfig, String> {
+    if !path.exists() {
+        return Ok(AppConfig::default());
+    }
+    let json = fs::read_to_string(path)
+        .map_err(|error| format!("failed to read config {}: {error}", path.display()))?;
+    serde_json::from_str(&json)
+        .map_err(|error| format!("failed to parse config {}: {error}", path.display()))
+}
+
+pub fn save_to_path(path: &Path, cfg: &AppConfig) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| {
+            format!(
+                "failed to create config directory {}: {error}",
+                parent.display()
+            )
+        })?;
+    }
+    let json = serde_json::to_string_pretty(cfg)
+        .map_err(|error| format!("failed to serialize config: {error}"))?;
+    fs::write(path, json)
+        .map_err(|error| format!("failed to write config {}: {error}", path.display()))
+}
+
+fn patch_field<T: DeserializeOwned>(key: &str, value: Value) -> Result<T, String> {
+    serde_json::from_value(value).map_err(|error| format!("invalid config field {key}: {error}"))
+}
+
+fn merge_patch(cfg: &mut AppConfig, patch: Value) -> Result<(), String> {
+    let fields = patch
+        .as_object()
+        .ok_or_else(|| "config patch must be an object".to_string())?;
+    for (key, value) in fields {
+        match key.as_str() {
+            "providerId" => {
+                let id: String = patch_field(key, value.clone())?;
+                cfg.provider_id = normalize_provider_id(&id);
+            }
+            "freeos" => cfg.freeos = patch_field(key, value.clone())?,
+            "openxyos" => cfg.openxyos = patch_field(key, value.clone())?,
+            "xyaiStudio" => cfg.xyai_studio = patch_field(key, value.clone())?,
+            "grokbot" => cfg.grokbot = patch_field(key, value.clone())?,
+            "providerOptions" => cfg.provider_options = patch_field(key, value.clone())?,
+            "mascotId" => cfg.mascot_id = patch_field(key, value.clone())?,
+            "autoExpression" => cfg.auto_expression = patch_field(key, value.clone())?,
+            "lastAgentId" => cfg.last_agent_id = patch_field(key, value.clone())?,
+            "threadIdByAgent" => cfg.thread_id_by_agent = patch_field(key, value.clone())?,
+            "petX" => cfg.pet_x = patch_field(key, value.clone())?,
+            "petY" => cfg.pet_y = patch_field(key, value.clone())?,
+            "petSize" => {
+                let size: f64 = patch_field(key, value.clone())?;
+                if !(80.0..=224.0).contains(&size) {
+                    return Err("petSize must be between 80 and 224".into());
+                }
+                cfg.pet_size = size;
+            }
+            "shortcutOpenPet" => cfg.shortcut_open_pet = patch_field(key, value.clone())?,
+            "shortcutOpenHome" => cfg.shortcut_open_home = patch_field(key, value.clone())?,
+            "keepWindowsVisible" => cfg.keep_windows_visible = patch_field(key, value.clone())?,
+            _ => return Err(format!("unsupported config field: {key}")),
+        }
+    }
+    Ok(())
+}
+
+pub fn patch_at_path(path: &Path, patch: Value) -> Result<AppConfig, String> {
+    let _guard = CONFIG_WRITE_LOCK
+        .lock()
+        .map_err(|_| "config write lock is poisoned".to_string())?;
+    let mut cfg = load_from_path(path)?;
+    merge_patch(&mut cfg, patch)?;
+    save_to_path(path, &cfg)?;
+    Ok(cfg)
+}
+
+fn config_path(app: &AppHandle) -> Result<std::path::PathBuf, String> {
+    app.path()
+        .app_config_dir()
+        .map(|path| path.join(CONFIG_FILE_NAME))
+        .map_err(|error| format!("failed to resolve app config directory: {error}"))
+}
+
+#[tauri::command]
+pub fn load_config(app: AppHandle) -> Result<AppConfig, String> {
+    load_from_path(&config_path(&app)?)
+}
+
+#[tauri::command]
+pub fn save_config(app: AppHandle, cfg: AppConfig) -> Result<(), String> {
+    let _guard = CONFIG_WRITE_LOCK
+        .lock()
+        .map_err(|_| "config write lock is poisoned".to_string())?;
+    save_to_path(&config_path(&app)?, &cfg)
+}
+
+#[tauri::command]
+pub fn patch_config(app: AppHandle, patch: Value) -> Result<(), String> {
+    patch_at_path(&config_path(&app)?, patch).map(|_| ())
+}

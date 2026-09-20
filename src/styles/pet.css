@@ -1,0 +1,61 @@
+.pet-root {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  user-select: none;
+  cursor: grab;
+  position: relative;
+}
+
+.pet-sprite {
+  width: 92%;
+  height: 92%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 18px rgba(0, 180, 255, 0.28));
+}
+
+.pet-menu {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 168px;
+  max-height: 92%;
+  overflow: auto;
+  background: rgba(12, 22, 36, 0.94);
+  color: #e8f7ff;
+  border: 1px solid rgba(80, 200, 255, 0.45);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 5;
+}
+
+.pet-menu button {
+  background: transparent;
+  color: inherit;
+  border: 0;
+  text-align: left;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.pet-menu button:hover,
+.pet-menu button.is-active {
+  background: rgba(0, 180, 255, 0.22);
+}
+
+.pet-menu-poses {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.pet-menu-poses img {
+  width: 100%;
+  height: 32px;
+  object-fit: contain;
+}
