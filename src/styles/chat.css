@@ -104,10 +104,10 @@
   padding: 8px 12px;
   font-size: 12px;
   flex: 0 0 auto;
-  background: rgba(20, 48, 72, 0.72);
-  border-top: 1px solid rgba(90, 210, 255, 0.28);
-  border-bottom: 1px solid rgba(90, 210, 255, 0.18);
-  color: #dff6ff;
+  background: #1c4a66;
+  border-top: 1px solid rgba(140, 230, 255, 0.55);
+  border-bottom: 1px solid rgba(140, 230, 255, 0.35);
+  color: #f4fbff;
 }
 
 .chat-pomo-actions {

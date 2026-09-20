@@ -1,16 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { queuedPreview } from "../lib/messageQueue";
 import {
+  DEFAULT_POMODORO,
   formatRemaining,
   idlePomodoro,
   phaseLabelZh,
   remainingMs,
+  skipPhase,
+  togglePomodoro,
   type PomodoroState,
 } from "../lib/pomodoro";
 import { companionActionFromText } from "../lib/companionLines";
+import { pomodoroSettingsOf } from "../lib/configLogic";
 import { BACKEND_PROVIDERS } from "../lib/providers/registry";
 import { useChatController } from "../hooks/useChatController";
 import { hideCurrentWindow } from "../lib/tauriWindowApi";
@@ -19,17 +23,29 @@ import { tauriApi } from "../lib/tauriApi";
 function ChatPomoBar() {
   const [state, setState] = useState<PomodoroState>(idlePomodoro());
   const [now, setNow] = useState(() => Date.now());
+  const settingsRef = useRef(DEFAULT_POMODORO);
 
   useEffect(() => {
-    let unlisten: (() => void) | undefined;
+    const unlisteners: Array<() => void> = [];
+    void tauriApi.loadConfig().then((cfg) => {
+      settingsRef.current = pomodoroSettingsOf(cfg);
+    });
     void tauriApi
       .listenPomodoroUpdated<PomodoroState>((next) => setState(next))
-      .then((fn) => {
-        unlisten = fn;
-      });
+      .then((fn) => unlisteners.push(fn));
+    void tauriApi
+      .listenPomodoroToggle(() => {
+        setState((current) => togglePomodoro(current, Date.now(), settingsRef.current));
+      })
+      .then((fn) => unlisteners.push(fn));
+    void tauriApi
+      .listenPomodoroSkip(() => {
+        setState((current) => skipPhase(current, Date.now(), settingsRef.current));
+      })
+      .then((fn) => unlisteners.push(fn));
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => {
-      unlisten?.();
+      unlisteners.forEach((fn) => fn());
       window.clearInterval(timer);
     };
   }, []);
@@ -152,7 +168,7 @@ export default function ChatWindow() {
         ))}
       </div>
       <ChatPomoBar />
-      {chat.messages.length === 0 && !chat.needsSettings ? (
+      {chat.messages.length === 0 ? (
         <div className="chat-chips">
           {COMPANION_CHIPS.map((chip) => (
             <button key={chip.label} type="button" onClick={chip.run}>
