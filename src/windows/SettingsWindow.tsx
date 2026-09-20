@@ -190,10 +190,11 @@ export default function SettingsWindow() {
             </select>
           </label>
           <p className="settings-note">
-            小元可对接 XYAI Studio 组织下的独立产品（FreeOS、openXYOS、XYAI Studio
-            工作台等），以及额外的本机 Grok Bot 网关。切换后端不会改动桌宠与对话界面。先{" "}
-            <code>npm run doctor</code> 探活本机端口；没有真实服务时，可先跑{" "}
-            <code>npm run mock:backends</code>，再把地址改成 18088 / 13000 / 11340。
+            本机联调优先 FreeOS <code>http://127.0.0.1:8088</code>
+            （Windows 上该端口常已开放）。openXYOS :3000
+            未启动可先忽略。切换后端不会改动桌宠与对话界面。先{" "}
+            <code>npm run doctor</code> 探活；没有真实 FreeOS 时，可先跑{" "}
+            <code>npm run mock:backends</code>，再把地址改成 18088。
           </p>
           {!provider.ready ? (
             <p className="settings-note">{provider.notReadyReason}</p>

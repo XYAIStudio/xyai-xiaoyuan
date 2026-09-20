@@ -4,16 +4,20 @@
  *
  *   npm run doctor
  *
- * Reads optional XYAI_*_URL overrides from the environment (see .env.example).
+ * Prefers FreeOS on 127.0.0.1:8088. Reads optional XYAI_*_URL overrides
+ * from the environment (see .env.example).
  */
 import http from "node:http";
 import https from "node:https";
+import net from "node:net";
 import { pathToFileURL } from "node:url";
+
+import { recommendLiveHint } from "./live-hint.mjs";
 
 const LIVE = [
   {
     id: "freeos",
-    label: "FreeOS / XYAI",
+    label: "FreeOS / XYAI（优先）",
     env: "XYAI_FREEOS_URL",
     fallback: "http://127.0.0.1:8088",
     path: "/api/setup/status",
@@ -72,6 +76,40 @@ function originOf(raw) {
 function joinUrl(base, path) {
   if (/^https?:\/\//i.test(path)) return path;
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function hostPortOf(base, fallbackPort) {
+  try {
+    const parsed = new URL(base);
+    const port = parsed.port
+      ? Number(parsed.port)
+      : parsed.protocol === "https:"
+        ? 443
+        : 80;
+    return { host: parsed.hostname || "127.0.0.1", port };
+  } catch {
+    return { host: "127.0.0.1", port: fallbackPort };
+  }
+}
+
+function tcpProbe(host, port, timeoutMs = 800) {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host, port });
+    const finish = (tcpOpen) => {
+      socket.removeAllListeners();
+      socket.destroy();
+      resolve({ tcpOpen });
+    };
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    socket.once("connect", () => {
+      clearTimeout(timer);
+      finish(true);
+    });
+    socket.once("error", () => {
+      clearTimeout(timer);
+      finish(false);
+    });
+  });
 }
 
 function requestOnce(url, timeoutMs = 2500) {
@@ -139,46 +177,44 @@ function pad(text, width) {
 async function probeRow(row) {
   const base = originOf(process.env[row.env] || row.fallback) || row.fallback;
   const url = joinUrl(base, row.path);
+  const { host, port } = hostPortOf(base, 80);
+  const tcp = await tcpProbe(host, port);
   const result = await requestOnce(url);
-  return { ...row, base, url, ...result };
+  return { ...row, base, url, host, port, ...tcp, ...result };
+}
+
+function formatDetail(row) {
+  if (row.ok) {
+    return `端口开放  HTTP 就绪  ${row.ms}ms  HTTP ${row.status}`;
+  }
+  if (row.tcpOpen) {
+    return `端口开放  HTTP 未就绪  ${row.ms}ms  ${row.error || ""}`.trim();
+  }
+  return `端口未开  ${row.error || "未启动"}  ${row.ms}ms`;
 }
 
 function printGroup(title, rows) {
   console.log(title);
   for (const row of rows) {
-    const mark = row.ok ? "✓" : "✗";
-    const detail = row.ok
-      ? `就绪  ${row.ms}ms  HTTP ${row.status}`
-      : `${row.error || "失败"}  ${row.ms}ms`;
-    console.log(`  ${mark}  ${pad(row.label, 20)}  ${pad(row.base, 28)}  ${detail}`);
+    const mark = row.ok ? "✓" : row.tcpOpen ? "~" : "✗";
+    console.log(
+      `  ${mark}  ${pad(row.label, 22)}  ${pad(row.base, 28)}  ${formatDetail(row)}`,
+    );
   }
 }
 
 export async function runDoctor() {
-  console.log("小元 联调探活（只访问本机地址，不上传任何内容）\n");
+  console.log("小元 联调探活（只访问本机地址，不上传任何内容）");
+  console.log("优先检查 FreeOS http://127.0.0.1:8088 ；openXYOS :3000 未开可忽略。\n");
   const live = [];
   for (const row of LIVE) live.push(await probeRow(row));
   const mock = [];
   for (const row of MOCK) mock.push(await probeRow(row));
-  printGroup("真实后端默认端口", live);
+  printGroup("真实后端默认端口（优先 :8088）", live);
   console.log("");
   printGroup("模拟网关（npm run mock:backends）", mock);
   console.log("");
-  const liveOk = live.filter((row) => row.ok && row.id !== "studio").length;
-  const mockOk = mock.filter((row) => row.ok).length;
-  if (liveOk === 0 && mockOk === 0) {
-    console.log(
-      "提示：当前没有探到可用服务。先启动 FreeOS / openXYOS / 本机 Grok Bot，或运行 npm run mock:backends。详见 docs/live-integration.md",
-    );
-  } else if (liveOk === 0 && mockOk > 0) {
-    console.log(
-      "提示：模拟网关已就绪。在设置里把地址改成 18088 / 13000 / 11340 后点「测试连接」。",
-    );
-  } else {
-    console.log(
-      "提示：把设置 → 后端 的地址改成上表「就绪」的那一行，再点「测试连接」。",
-    );
-  }
+  console.log(`提示：${recommendLiveHint(live, mock)}`);
   return { live, mock };
 }
 

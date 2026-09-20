@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { appendLatency, describeNetworkError, runConnectionTest } from "./connection";
 import { LIVE_DEFAULTS, MOCK_DEFAULTS, parseHostPort } from "./endpoints";
+import { PREFERRED_LIVE_PORT, PREFERRED_LIVE_URL, recommendLiveHint } from "./liveHint";
 import { freeOsProvider } from "./freeos";
 import { grokBotProvider } from "./grokbot";
 import { openXyosProvider } from "./openxyos";
@@ -41,6 +42,36 @@ describe("live endpoint contract", () => {
     expect(freeOsProvider.defaultBaseUrl).toBe(LIVE_DEFAULTS.freeos.url);
     expect(openXyosProvider.defaultBaseUrl).toBe(LIVE_DEFAULTS.openxyos.url);
     expect(grokBotProvider.defaultBaseUrl).toBe(LIVE_DEFAULTS.grokbot.url);
+    expect(PREFERRED_LIVE_PORT).toBe(8088);
+    expect(PREFERRED_LIVE_URL).toBe("http://127.0.0.1:8088");
+    expect(freeOsProvider.defaultBaseUrl).toContain(":8088");
+  });
+
+  it("prefers FreeOS :8088 when that port is open and :3000 is closed", () => {
+    const windowsProbe = recommendLiveHint(
+      [
+        {
+          id: "freeos",
+          base: "http://127.0.0.1:8088",
+          tcpOpen: true,
+          ok: false,
+        },
+        { id: "openxyos", base: "http://127.0.0.1:3000", tcpOpen: false, ok: false },
+        { id: "grokbot", base: "http://127.0.0.1:1340", tcpOpen: false, ok: false },
+      ],
+      [],
+    );
+    expect(windowsProbe).toMatch(/8088/);
+    expect(windowsProbe).toMatch(/优先对接 FreeOS/);
+    expect(windowsProbe).toMatch(/3000 未开可忽略/);
+    expect(windowsProbe).not.toMatch(/优先对接 openXYOS/);
+
+    const httpReady = recommendLiveHint([
+      { id: "freeos", base: "http://127.0.0.1:8088", tcpOpen: true, ok: true },
+      { id: "openxyos", base: "http://127.0.0.1:3000", tcpOpen: false, ok: false },
+    ]);
+    expect(httpReady).toMatch(/HTTP 已就绪/);
+    expect(httpReady).toMatch(/FreeOS \/ XYAI/);
   });
 });
 

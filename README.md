@@ -140,12 +140,12 @@ npm run dev
 
 先启动对应产品，再在小元 **设置 → 后端** 填写地址并测试连接。密钥进系统钥匙串，不要写进 Git。
 
-| 后端        | 本机默认                | 设置里填什么                          |
-| ----------- | ----------------------- | ------------------------------------- |
-| FreeOS      | `http://127.0.0.1:8088` | 用户名 + 密码                         |
-| openXYOS    | `http://127.0.0.1:3000` | 邮箱 + 密码                           |
-| Grok Bot    | `http://127.0.0.1:1340` | Bearer 令牌，或从 `gateway.json` 导入 |
-| XYAI Studio | （无远程对话 API）      | 保持「未就绪」                        |
+| 后端               | 本机默认                | 设置里填什么                          |
+| ------------------ | ----------------------- | ------------------------------------- |
+| **FreeOS（优先）** | `http://127.0.0.1:8088` | 用户名 + 密码                         |
+| openXYOS（可选）   | `http://127.0.0.1:3000` | 邮箱 + 密码；端口未开可忽略           |
+| Grok Bot           | `http://127.0.0.1:1340` | Bearer 令牌，或从 `gateway.json` 导入 |
+| XYAI Studio        | （无远程对话 API）      | 保持「未就绪」                        |
 
 ### 没有真实后端时：模拟网关
 
@@ -161,7 +161,7 @@ npm run mock:backends
 | openXYOS | `http://127.0.0.1:13000` | `xiaoyuan@xyai.local` / `xiaoyuan` |
 | Grok Bot | `http://127.0.0.1:11340` | 令牌 `mock-token`                  |
 
-另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」（会显示延迟）。对接真实本机后端：`npm run doctor` / `npm run live`，见 [docs/live-integration.md](docs/live-integration.md)。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。XYAI Studio 没有模拟对话入口，因为它在产品侧仍是未就绪。详见 [docs/backends.md](docs/backends.md)。
+另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」（会显示延迟）。真实本机联调优先 FreeOS `http://127.0.0.1:8088`（`:3000` 未开可忽略）：`npm run doctor` / `npm run live:freeos`，见 [docs/live-integration.md](docs/live-integration.md)。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。XYAI Studio 没有模拟对话入口，因为它在产品侧仍是未就绪。详见 [docs/backends.md](docs/backends.md)。
 
 ### 小元 16 表情
 

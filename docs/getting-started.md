@@ -60,14 +60,14 @@ npm run mock:backends
 
 等价于 `make mock`。模拟地址与账号见 [后端对接](backends.md#没有真实后端时模拟网关)。再在设置里改地址并点「测试连接」。
 
-对接真实本机后端：
+对接真实本机后端（优先 FreeOS `:8088`）：
 
 ```bash
 npm run doctor
-npm run live
+npm run live:freeos
 ```
 
-说明见 [本机联调](live-integration.md)。可复制 `.env.example` 覆盖默认端口。
+`:3000` 未开可忽略。说明见 [本机联调](live-integration.md)。可复制 `.env.example` 覆盖默认端口。
 
 ## 质量检查
 

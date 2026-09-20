@@ -1,6 +1,8 @@
 # 本机联调
 
-把小元指到**真实**的 FreeOS / openXYOS / 本机 Grok Bot，或继续用模拟网关。密钥只进系统钥匙串（开发构建写本机 `dev-secrets.json`），不要提交。
+把小元指到**真实**本机后端，或继续用模拟网关。密钥只进系统钥匙串（开发构建写本机 `dev-secrets.json`），不要提交。
+
+**推荐顺序：FreeOS `http://127.0.0.1:8088`。** Windows 本机端口扫描常见情况是 **8088 已开放**（多半是 FreeOS），**3000 未开**。设置默认就是 FreeOS / 8088；openXYOS 没起来时不要改端口，直接联调 8088。
 
 ## 一键探活
 
@@ -12,15 +14,15 @@ make doctor
 
 脚本 `scripts/doctor.mjs` 只访问本机 HTTP，打印中文状态与延迟。默认端口：
 
-| 名称             | 默认地址                 | 探活路径            | 环境变量                    |
-| ---------------- | ------------------------ | ------------------- | --------------------------- |
-| FreeOS           | `http://127.0.0.1:8088`  | `/api/setup/status` | `XYAI_FREEOS_URL`           |
-| openXYOS         | `http://127.0.0.1:3000`  | `/api/health`       | `XYAI_OPENXYOS_URL`         |
-| 本机 Grok Bot    | `http://127.0.0.1:1340`  | `/health`           | `XYAI_GROKBOT_URL`          |
-| XYAI Studio 探测 | `http://127.0.0.1:5173`  | `/`                 | `XYAI_STUDIO_URL`           |
-| 模拟 FreeOS      | `http://127.0.0.1:18088` | `/api/setup/status` | （`npm run mock:backends`） |
-| 模拟 openXYOS    | `http://127.0.0.1:13000` | `/api/health`       |                             |
-| 模拟 Grok Bot    | `http://127.0.0.1:11340` | `/health`           |                             |
+| 名称               | 默认地址                 | 探活路径            | 环境变量                    |
+| ------------------ | ------------------------ | ------------------- | --------------------------- |
+| **FreeOS（优先）** | `http://127.0.0.1:8088`  | `/api/setup/status` | `XYAI_FREEOS_URL`           |
+| openXYOS（可选）   | `http://127.0.0.1:3000`  | `/api/health`       | `XYAI_OPENXYOS_URL`         |
+| 本机 Grok Bot      | `http://127.0.0.1:1340`  | `/health`           | `XYAI_GROKBOT_URL`          |
+| XYAI Studio 探测   | `http://127.0.0.1:5173`  | `/`                 | `XYAI_STUDIO_URL`           |
+| 模拟 FreeOS        | `http://127.0.0.1:18088` | `/api/setup/status` | （`npm run mock:backends`） |
+| 模拟 openXYOS      | `http://127.0.0.1:13000` | `/api/health`       |                             |
+| 模拟 Grok Bot      | `http://127.0.0.1:11340` | `/health`           |                             |
 
 可复制 [`.env.example`](../.env.example) 为 `.env`（已 gitignore）覆盖地址。`.env` 不会自动灌进桌面设置，只给 `doctor` / 文档脚本用。
 
@@ -43,11 +45,13 @@ npm run live:grokbot
 
 然后：
 
-1. 先启动对应产品，再 `npm run doctor` 看到「就绪」与毫秒数。
+1. `npm run doctor`：先看 **FreeOS :8088** 是「端口开放」还是「HTTP 就绪」。`:3000` 未开可忽略。
 2. `npm run tauri dev`（或浏览器预览设置页）。
-3. **设置 → 后端** 选提供者，填同一地址与账号。
+3. **设置 → 后端** 保持「FreeOS / XYAI」，地址 `http://127.0.0.1:8088`。
 4. 点 **测试连接**：成功/失败文案后会带 `（12ms）` 一类延迟。
 5. 保存。密钥进钥匙串。
+
+`doctor` 同时做 TCP 端口探测与 HTTP 探活。8088 端口开着但 `/api/setup/status` 还没好，仍优先填 FreeOS，不要改去 3000。
 
 | 后端        | 设置里填什么                           |
 | ----------- | -------------------------------------- |

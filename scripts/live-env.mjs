@@ -14,8 +14,8 @@ const PRESETS = {
     url: process.env.XYAI_FREEOS_URL || "http://127.0.0.1:8088",
     fields: "用户名 + 密码（钥匙串键 freeos_password）",
     notes: [
-      "先启动 FreeOS，确认 GET /api/setup/status 可访问。",
-      "设置 → 后端 选「FreeOS / XYAI」，地址填下面的 URL。",
+      "联调优先这一条：Windows 本机常见 127.0.0.1:8088 已开放。",
+      "设置 → 后端 选「FreeOS / XYAI」，地址保持 http://127.0.0.1:8088。",
       "点「测试连接」应看到延迟毫秒数；失败时先 npm run doctor。",
     ],
   },
@@ -25,7 +25,7 @@ const PRESETS = {
     url: process.env.XYAI_OPENXYOS_URL || "http://127.0.0.1:3000",
     fields: "邮箱 + 密码（钥匙串键 openxyos_password）",
     notes: [
-      "先启动 openXYOS，确认 GET /api/health 返回就绪。",
+      "仅当 :3000 已开再填。端口未开可忽略，继续用 FreeOS :8088。",
       "设置 → 后端 选「openXYOS 组织 OS」，地址填下面的 URL。",
       "对话可走小雄 /assistant/chat，或已有会话 /api/chats/:id/messages。",
     ],
@@ -60,7 +60,7 @@ function printPreset(id) {
 const arg = (process.argv[2] || "all").replace(/^:+/, "");
 if (arg === "all" || arg === "help") {
   console.log(
-    "把小元指到真实本机后端（密钥勿提交）。也可 npm run mock:backends 用模拟网关。\n",
+    "把小元指到真实本机后端（密钥勿提交）。推荐顺序：FreeOS :8088 → Grok Bot :1340。openXYOS :3000 未开可跳过。也可 npm run mock:backends。\n",
   );
   for (const id of Object.keys(PRESETS)) printPreset(id);
   console.log("探活：npm run doctor");

@@ -120,6 +120,7 @@ describe("SettingsWindow", () => {
       "XYAI Studio 桌面工作台（未就绪）",
       "本机 Grok Bot",
     ]);
+    expect(screen.getByText(/本机联调优先 FreeOS/)).toBeInTheDocument();
   });
 
   it("exposes pose auto-switch and lock controls on the pet tab", async () => {
