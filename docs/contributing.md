@@ -34,9 +34,9 @@ make install-hooks
 - Windows 安装包以 NSIS 为准，不要在 CI 里重新打开 MSI/WiX，除非先解决 ASCII 文件名并在 `windows-latest` 上验证。见 [Windows 安装包](packaging-windows.md)。
 - 文档改动放在 `docs/`，并在 [docs/README.md](README.md) / 根 README 留链接。Wiki 同步稿放 `docs/wiki-seed/`。
 
-## 禁止 OctopPet
+## 形象与命名
 
-小元是 XYAI 自有形象。代码、注释、文档、Wiki、提交说明、Issue、Discussions **都不要出现 OctopPet** 或其它第三方桌宠名称。也不要复用那些项目的资源路径、包名或文案。
+小元是 XYAI 自有形象。代码、注释、文档、Wiki、提交说明、Issue、Discussions **都不要写其它第三方桌宠名称**。也不要复用那些项目的资源路径、包名或文案。
 
 ## 代码风格
 

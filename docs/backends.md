@@ -17,6 +17,17 @@
 
 HTTP 请求默认 15 秒超时（`src/lib/providers/http.ts`）。不要臆造端点：下列接口均来自各仓库当前公开路由。
 
+## 桌面 token-first 联调（FreeOS）
+
+本机桌面联调是 **token-first**，不是无密码登录：
+
+1. 先启动 FreeOS（默认 `http://127.0.0.1:8088`），必要时在 FreeOS 桌面完成登录。
+2. 小元 **设置 → 后端** 保持 FreeOS / `:8088`。
+3. 优先复用钥匙串 `freeos_token`（对应 FreeOS WebView 的 `auth_token`）。`GET /api/auth/me` 通过即可测连接、列智能体。没有有效令牌时再 `POST /api/auth/login` `{username,password}`（首次接入）。空密码登录会 `AUTH_FAILED`，不是可用路径。
+4. 对话走已公开的 WebSocket：`/api/agents/{agent_id}/chat/ws?token=`。打开后先 `subscribe`，再 `user_turn`（带 `session_key`）。
+
+**智能体模型配置：** 连接成功不等于模型能答。若聊天报模型 / 供应商错误，到 **FreeOS** 为该智能体配置模型。这是 FreeOS 侧配置，不是小元新增的接口。
+
 ## FreeOS
 
 实际对接：

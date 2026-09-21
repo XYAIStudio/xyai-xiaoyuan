@@ -154,7 +154,14 @@ Chinese-first index: [docs/README.md](docs/README.md)
 | [Architecture](docs/architecture.md)           | `BackendProvider` plugin model  |
 | [Contributing](docs/contributing.md)           | `make check` and PR norms       |
 
-- Wiki: <https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
+Wiki (bilingual nav on Home; seed in [`docs/wiki-seed/`](docs/wiki-seed/)):
+
+- Home: <https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
+- [Quick Start](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Quick-Start) / [快速开始](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/快速开始)
+- [Backends](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Backends) / [后端对接](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/后端对接)
+- [Poses](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Poses) / [姿态与动画](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/姿态与动画)
+- [Packaging](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Packaging) / [Windows 安装包](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Windows-安装包)
+- [Architecture](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Architecture) / [架构](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/架构)
 - Discussions: <https://github.com/XYAIStudio/xyai-xiaoyuan/discussions>
 
 ## License

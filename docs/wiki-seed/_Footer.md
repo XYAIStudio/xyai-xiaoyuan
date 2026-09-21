@@ -1,0 +1,1 @@
+知识以仓库 [`docs/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs) 为准 · Canonical docs in [`docs/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs) · [XYAI精灵小元 / XYAI Xiaoyuan](https://github.com/XYAIStudio/xyai-xiaoyuan)

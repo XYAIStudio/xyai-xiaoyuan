@@ -255,9 +255,14 @@ make check
 | [贡献指南](docs/contributing.md)             | `make check`、PR 约定                                 |
 | [English](README_EN.md)                      | English landing page                                  |
 
-Wiki 同步稿在 [`docs/wiki-seed/`](docs/wiki-seed/)，可复制到 GitHub Wiki：
+Wiki 同步稿在 [`docs/wiki-seed/`](docs/wiki-seed/)，与 GitHub Wiki 对应：
 
-- Wiki：<https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
+- Wiki 首页：<https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
+- [快速开始](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/快速开始) / [Quick Start](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Quick-Start)
+- [后端对接](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/后端对接) / [Backends](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Backends)
+- [姿态与动画](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/姿态与动画) / [Poses](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Poses)
+- [Windows 安装包](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Windows-安装包) / [Packaging](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Packaging)
+- [架构](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/架构) / [Architecture](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Architecture)
 - Discussions：<https://github.com/XYAIStudio/xyai-xiaoyuan/discussions>
 
 ## 许可证 License
