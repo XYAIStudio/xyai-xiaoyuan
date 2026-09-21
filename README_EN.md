@@ -61,17 +61,18 @@ Xiaoyuan is **XYAI’s own mascot**. Official poses ship in-repo.
 
 ## Highlights
 
-| Capability         | Notes                                                                        |
-| ------------------ | ---------------------------------------------------------------------------- |
-| Always-on-top pet  | Frameless, draggable; single-click cycles a pose, double-click opens chat    |
-| Compact chat       | Markdown, streaming replies, agents, pomodoro bar, companion chips           |
-| System tray        | Open pet / chat / pomodoro / pat / settings / check for updates              |
-| 16 official poses  | Lifecycle, activity, clock, and pomodoro; optional pose lock                 |
-| Companion desktop  | Pat / feed / night, mood meter, pet-side toasts (not OS spam)                |
-| Sound scaffold     | Master off by default; sfx / music / volume / quiet hours                    |
-| Pluggable backends | `BackendProvider` for first-party XYAIStudio products, plus a local Grok Bot |
-| Windows installer  | GitHub Actions NSIS `setup.exe`                                              |
-| Auto-update        | Settings / tray → GitHub Releases `latest.json`                              |
+| Capability           | Notes                                                                        |
+| -------------------- | ---------------------------------------------------------------------------- |
+| Always-on-top pet    | Frameless, draggable; single-click cycles a pose, double-click opens chat    |
+| Compact chat         | Markdown, streaming replies, agents, pomodoro bar, companion chips           |
+| System tray          | Open pet / chat / pomodoro / pat / settings / check for updates              |
+| 16 official poses    | Lifecycle, activity, clock, and pomodoro; optional pose lock                 |
+| Companion desktop    | Pat / feed / night, mood meter, pet-side toasts (not OS spam)                |
+| Sound pack           | Master off by default; in-repo original loop + interaction cues              |
+| Screen understanding | Off by default; local window title / screenshot heuristics, never uploaded   |
+| Pluggable backends   | `BackendProvider` for first-party XYAIStudio products, plus a local Grok Bot |
+| Windows installer    | GitHub Actions NSIS `setup.exe` (signing secrets optional)                   |
+| Auto-update          | Settings / tray → GitHub Releases `latest.json`                              |
 
 ## Overview
 

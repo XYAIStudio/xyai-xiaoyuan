@@ -3,6 +3,7 @@ pub mod window_cmd;
 
 pub mod activity_cmd;
 pub mod config_cmd;
+pub mod screen_cmd;
 pub mod secrets_cmd;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -45,6 +46,7 @@ pub fn run() {
             window_cmd::is_autostart,
             window_cmd::set_tray_tooltip,
             activity_cmd::get_activity_snapshot,
+            screen_cmd::analyze_screen_local,
         ])
         .setup(|app| {
             tray::setup(app.handle())?;

@@ -48,6 +48,46 @@ jobs:
       - name: Install JS deps
         run: npm ci
 
+      - name: Optional Authenticode certificate
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) {
+            Write-Host "No WINDOWS_CERTIFICATE secret; skipping Authenticode (unsigned NSIS is OK)."
+            exit 0
+          }
+          $pfxPath = Join-Path $env:RUNNER_TEMP "xyai-xiaoyuan-codesign.pfx"
+          $bytes = [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE)
+          [IO.File]::WriteAllBytes($pfxPath, $bytes)
+          $password = $env:WINDOWS_CERTIFICATE_PASSWORD
+          if ([string]::IsNullOrWhiteSpace($password)) {
+            Write-Host "WINDOWS_CERTIFICATE set but password empty; skip Authenticode."
+            exit 0
+          }
+          $secure = ConvertTo-SecureString $password -AsPlainText -Force
+          $cert = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My -Password $secure
+          "WINDOWS_CERTIFICATE_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Imported Authenticode cert $($cert.Thumbprint)"
+
+      - name: Updater signing availability
+        id: updater
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          CONFIG_JSON="$(python3 scripts/tauri-ci-config.py || python scripts/tauri-ci-config.py)"
+          extra=""
+          if [ -z "${TAURI_SIGNING_PRIVATE_KEY}" ]; then
+            echo "No TAURI_SIGNING_PRIVATE_KEY; unsigned build, no latest.json updater artifacts."
+          fi
+          if [ -n "${CONFIG_JSON}" ]; then
+            extra="--config ${CONFIG_JSON}"
+          fi
+          echo "extra=${extra}" >> "$GITHUB_OUTPUT"
+
       - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,8 +96,8 @@ jobs:
         with:
           tagName: app-v__VERSION__
           releaseName: "XYAI精灵小元 v__VERSION__"
-          releaseBody: "官方桌面伴侣安装包。Windows 请下载 NSIS setup.exe。"
+          releaseBody: "官方桌面伴侣安装包。Windows 请下载 NSIS setup.exe。更新清单 latest.json 与 NSIS 产物在同一 Release。"
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          args: ${{ matrix.args }} ${{ steps.updater.outputs.extra }}
           updaterJsonPreferNsis: true

@@ -1,0 +1,14 @@
+# Audio license
+
+All files under `assets/audio/` and the runtime copies in `public/audio/`
+are **original works created for this repository**.
+
+They are synthesized by `scripts/generate-audio.py` (procedural PCM).
+No third-party recordings, sample packs, or trademarked pet themes are used.
+
+**License: CC0 1.0 Universal (public domain dedication).**
+
+You may copy, modify, and redistribute these WAVs with or without
+attribution. Please keep this file when vendoring the pack.
+
+Do not replace these files with copyrighted music or SFX.

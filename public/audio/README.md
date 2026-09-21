@@ -1,26 +1,5 @@
-# 声音占位
+# 运行时音频
 
-这里只放 **极短静音 WAV**，方便接线。请自行替换成无版权 / 自制素材，不要提交受版权保护的音乐。
+此目录是 `assets/audio/` 的运行时副本。请先改生成脚本再 `npm run audio:generate`，不要手改这里的占位。
 
-运行时副本：`public/audio/`（Vite 以 `/audio/...` 提供）。
-
-## 音效 `sfx/`
-
-| 文件                   | 预定用途               |
-| ---------------------- | ---------------------- |
-| `pose-change.wav`      | 姿态切换（已节流）     |
-| `message-received.wav` | 助手回复完成           |
-| `idle.wav`             | 进入长空闲（预留）     |
-| `pat.wav`              | 拍一拍                 |
-| `feed.wav`             | 喂食                   |
-| `pomodoro.wav`         | 番茄钟阶段切换         |
-| `error.wav`            | 连接/回复出错          |
-| `hover.wav`            | 悬停（预留，默认不播） |
-
-## 音乐 `music/`
-
-| 文件                 | 预定用途                     |
-| -------------------- | ---------------------------- |
-| `companion-loop.wav` | 陪伴循环；需打开「背景音乐」 |
-
-播放逻辑见 `src/lib/audio.ts`：总开关关闭、音效/音乐分开关关闭、安静时段、或文件缺失时均为 no-op。
+许可见 [`assets/audio/LICENSE`](../../assets/audio/LICENSE)。

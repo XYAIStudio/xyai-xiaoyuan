@@ -13,7 +13,7 @@
 | **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 可选探测地址；连接测试会说明未就绪              |
 | **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | 网关地址、Bearer 令牌，或从 `gateway.json` 导入 |
 
-先启动对应产品，再打开小元 **设置 → 后端** 填写并点「测试连接」「保存」。
+先启动对应产品，再打开小元 **设置 → 后端** 填写并点「测试连接」「保存」。测试连接会附带延迟毫秒数。本机联调**优先 FreeOS `http://127.0.0.1:8088`**（Windows 上该端口常已开放；`:3000` 未开可忽略）。探活见 [live-integration.md](live-integration.md)（`npm run doctor` / `npm run live:freeos`）。
 
 HTTP 请求默认 15 秒超时（`src/lib/providers/http.ts`）。不要臆造端点：下列接口均来自各仓库当前公开路由。
 

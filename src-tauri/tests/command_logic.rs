@@ -5,6 +5,7 @@ use xyai_xiaoyuan_lib::activity_cmd::{categorize_foreground, source_from_cursor}
 use xyai_xiaoyuan_lib::config_cmd::{
     self, home_url_for, normalize_provider_id, select_mascot, supported_poses, AppConfig,
 };
+use xyai_xiaoyuan_lib::screen_cmd::stats_from_bgra;
 use xyai_xiaoyuan_lib::secrets_cmd::{
     gateway_file_to_url_and_token, secret_account, validate_secret_key,
 };
@@ -82,6 +83,7 @@ fn config_patch_and_defaults() {
     assert_eq!(loaded.idle_threshold_sec, 50);
     assert!(!loaded.foreground_hints);
     assert!(!loaded.screen_understanding);
+    assert!(!loaded.allow_screenshot_analysis);
 
     let patched = config_cmd::patch_at_path(
         &path,
@@ -177,6 +179,30 @@ fn activity_source_and_foreground_categories() {
     assert_eq!(categorize_foreground("Zoom.exe", "Standup"), "meeting");
     assert_eq!(categorize_foreground("Spotify.exe", ""), "media");
     assert_eq!(categorize_foreground("notepad", "notes"), "other");
+}
+
+#[test]
+fn local_screenshot_stats_stay_on_device() {
+    let dark = vec![18u8, 20, 16, 255].repeat(160 * 90);
+    let dark_stats = stats_from_bgra(160, 90, &dark);
+    assert!(dark_stats.captured);
+    assert!(dark_stats.dark_ratio > 0.9);
+    assert!(dark_stats.edge_score < 0.05);
+
+    let mut checker = Vec::with_capacity(8 * 8 * 4);
+    for y in 0..8 {
+        for x in 0..8 {
+            let on = ((x + y) % 2) == 0;
+            if on {
+                checker.extend_from_slice(&[240u8, 240, 240, 255]);
+            } else {
+                checker.extend_from_slice(&[12u8, 12, 12, 255]);
+            }
+        }
+    }
+    let busy = stats_from_bgra(8, 8, &checker);
+    assert!(busy.captured);
+    assert!(busy.edge_score > 0.5);
 }
 
 #[test]

@@ -198,6 +198,59 @@ describe("activity and companion overlay", () => {
     ).toBe("garden");
   });
 
+  it("maps opt-in screen understanding after pomodoro, behind chat and lock", () => {
+    expect(
+      resolveCompanionPose({
+        lifecycle: "idle",
+        screenUnderstanding: true,
+        screenHint: {
+          category: "ide",
+          source: "title",
+          confidence: 0.9,
+          reason: "Code",
+        },
+      }),
+    ).toBe("think");
+    expect(
+      resolveCompanionPose({
+        lifecycle: "streaming",
+        screenUnderstanding: true,
+        screenHint: {
+          category: "media",
+          source: "screenshot",
+          confidence: 0.7,
+          reason: "video",
+        },
+      }),
+    ).toBe("think");
+    expect(
+      resolveCompanionPose({
+        lifecycle: "idle",
+        lockPose: true,
+        current: "hero",
+        screenUnderstanding: true,
+        screenHint: {
+          category: "browser",
+          source: "title",
+          confidence: 0.8,
+          reason: "chrome",
+        },
+      }),
+    ).toBe("hero");
+    expect(
+      resolveCompanionPose({
+        lifecycle: "idle",
+        screenUnderstanding: false,
+        screenHint: {
+          category: "media",
+          source: "screenshot",
+          confidence: 0.8,
+          reason: "video",
+        },
+      }),
+    ).not.toBe("music");
+  });
+
   it("maps IDE foreground hints when enabled", () => {
     const ide: ActivitySnapshot = {
       idleMs: 100,

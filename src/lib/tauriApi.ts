@@ -4,12 +4,18 @@ import { emit, listen } from "@tauri-apps/api/event";
 import {
   ACTIVITY_POLL_MS,
   browserActivitySnapshot,
+  categorizeForeground,
   snapshotFromRaw,
   type ActivitySnapshot,
   type InputSource,
 } from "./activity";
 import { DEFAULT_APP_CONFIG, normalizeLoadedConfig } from "./configLogic";
 import type { PetPoseId } from "./mascots";
+import {
+  emptyPixelStats,
+  type PixelStats,
+  type ScreenSample,
+} from "./screenUnderstanding";
 import { makeToast, type PetToast, type ToastTone } from "./notifications";
 import type { CompanionAction } from "./companionLines";
 import type { AppConfig } from "./types";
@@ -199,6 +205,46 @@ export const tauriApi = {
         kind: "idle",
         source: "unavailable",
         available: false,
+      };
+    }
+  },
+  analyzeScreen: async (
+    options: { includeScreenshot?: boolean } = {},
+  ): Promise<ScreenSample> => {
+    const capturedAt = Date.now();
+    if (!isTauri()) {
+      const title = typeof document !== "undefined" ? document.title : "";
+      return {
+        title,
+        process: "browser-preview",
+        category: categorizeForeground("browser-preview", title),
+        capturedAt,
+        stats: emptyPixelStats(),
+      };
+    }
+    try {
+      const raw = await invoke<{
+        title: string;
+        process: string;
+        category: string;
+        stats?: PixelStats;
+      }>("analyze_screen_local", {
+        includeScreenshot: options.includeScreenshot ?? false,
+      });
+      return {
+        title: raw.title ?? "",
+        process: raw.process ?? "",
+        category: categorizeForeground(raw.process ?? "", raw.title ?? ""),
+        capturedAt,
+        stats: raw.stats ?? emptyPixelStats(),
+      };
+    } catch {
+      return {
+        title: "",
+        process: "",
+        category: "unknown",
+        capturedAt,
+        stats: emptyPixelStats(),
       };
     }
   },

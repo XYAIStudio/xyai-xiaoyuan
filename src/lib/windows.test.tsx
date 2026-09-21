@@ -31,6 +31,23 @@ vi.mock("./tauriApi", async () => {
         source: "unavailable",
         available: false,
       })),
+      analyzeScreen: vi.fn(async () => ({
+        title: "",
+        process: "",
+        category: "unknown",
+        capturedAt: 0,
+        stats: {
+          width: 0,
+          height: 0,
+          meanLuma: 0,
+          darkRatio: 0,
+          brightRatio: 0,
+          edgeScore: 0,
+          colorVariance: 0,
+          chromaMean: 0,
+          captured: false,
+        },
+      })),
       emitAuthUpdated: vi.fn(async () => undefined),
       emitMascotChanged: vi.fn(async () => undefined),
       listenMascotChanged: vi.fn(async () => () => undefined),
@@ -103,6 +120,7 @@ describe("SettingsWindow", () => {
       "XYAI Studio 桌面工作台（未就绪）",
       "本机 Grok Bot",
     ]);
+    expect(screen.getByText(/本机联调优先 FreeOS/)).toBeInTheDocument();
   });
 
   it("exposes pose auto-switch and lock controls on the pet tab", async () => {
@@ -126,8 +144,15 @@ describe("SettingsWindow", () => {
       screen.getByLabelText("偶尔说一句（空闲气泡，打招呼仍会显示）"),
     ).toBeChecked();
     expect(
-      screen.getByLabelText("理解屏幕内容（实验，默认关闭，本版本不会截屏）"),
-    ).toBeDisabled();
+      screen.getByLabelText("理解屏幕内容（默认关闭，仅本机分析）"),
+    ).not.toBeChecked();
+    expect(
+      screen.getByLabelText("理解屏幕内容（默认关闭，仅本机分析）"),
+    ).not.toBeDisabled();
+    expect(screen.getByLabelText("允许截屏分析（额外开关，永不上传）")).toBeDisabled();
+    expect(
+      screen.getByLabelText("背景音乐（仓库自制循环，需打开总开关）"),
+    ).not.toBeChecked();
   });
 
   it("shows extra shortcuts including click-through and pomodoro", async () => {

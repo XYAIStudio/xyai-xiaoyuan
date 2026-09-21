@@ -6,6 +6,7 @@ import type {
   SendChatHandle,
   SendChatInput,
 } from "./types";
+import { runConnectionTest } from "./connection";
 import { apiJson, clientFetch, extractTextContent, normalizeBaseUrl } from "./http";
 
 const TOKEN_KEY = "openxyos_token";
@@ -99,7 +100,7 @@ export const openXyosProvider: BackendProvider = {
   secretKeys: [PASSWORD_KEY, TOKEN_KEY],
 
   async testConnection(ctx): Promise<ConnectionTestResult> {
-    try {
+    return runConnectionTest(async () => {
       const health = await apiJson<Record<string, unknown>>(ctx.baseUrl, "/health");
       const product = String(health.product ?? "openXYOS");
       if (!ctx.username?.trim()) {
@@ -117,12 +118,7 @@ export const openXyosProvider: BackendProvider = {
       );
       const name = me.data?.nickname || me.data?.email || ctx.username;
       return { ok: true, message: `已连接 ${product}：${name}` };
-    } catch (error) {
-      return {
-        ok: false,
-        message: error instanceof Error ? error.message : "连接失败",
-      };
-    }
+    });
   },
 
   async listAgents(ctx) {
