@@ -189,7 +189,7 @@ export const freeOsProvider: BackendProvider = {
         name ? `已连接：${name}` : "连接成功",
         role ? `角色 ${role}` : "",
         agentCount != null ? `${agentCount} 个智能体` : "",
-        version ? `v${version}` : "",
+        version && /^\d/.test(version) ? `v${version}` : "",
       ].filter(Boolean);
       return {
         ok: true,
