@@ -110,7 +110,9 @@ describe("connection test contract", () => {
         throw new Error("login should not run when token is valid");
       }
       if (String(url).endsWith("/api/auth/me")) {
-        expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer saved-tok");
+        expect(new Headers(init?.headers).get("Authorization")).toBe(
+          "Bearer saved-tok",
+        );
         return new Response(
           JSON.stringify({ username: "admin", display_name: "管理员", role: "admin" }),
           { status: 200 },
@@ -139,9 +141,9 @@ describe("connection test contract", () => {
     });
     expect(result.ok).toBe(true);
     expect(result.message).toMatch(/已连接：管理员/);
-    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/auth/login"))).toBe(
-      false,
-    );
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/auth/login")),
+    ).toBe(false);
   });
 
   it("FreeOS testConnection hits health + setup + login + me", async () => {

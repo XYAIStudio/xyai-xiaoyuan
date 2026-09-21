@@ -213,9 +213,7 @@ describe("FreeOS sendChat websocket frames", () => {
       expect(FakeWebSocket.instances[0]?.sent.length).toBeGreaterThanOrEqual(2);
     });
     const socket = FakeWebSocket.instances[0];
-    expect(socket.url).toBe(
-      "ws://127.0.0.1:8088/api/agents/main/chat/ws?token=tok",
-    );
+    expect(socket.url).toBe("ws://127.0.0.1:8088/api/agents/main/chat/ws?token=tok");
     expect(socket.sent[0]).toEqual({ type: "subscribe", thread_id: "tid-1" });
     expect(socket.sent[1]).toEqual({
       type: "user_turn",
@@ -227,6 +225,7 @@ describe("FreeOS sendChat websocket frames", () => {
   });
 });
 
+describe("openXYOS and grokbot helpers", () => {
   it("reads the last openXYOS employee reply and rewrites grokbot bind addresses", () => {
     expect(
       lastEmployeeReply([

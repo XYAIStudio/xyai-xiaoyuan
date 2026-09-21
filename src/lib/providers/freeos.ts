@@ -395,9 +395,7 @@ export const freeOsProvider: BackendProvider = {
       threadId = resolved.threadId;
       sessionKey = resolved.sessionKey;
     } catch (error) {
-      input.onError?.(
-        error instanceof Error ? error.message : "无法创建 FreeOS 会话",
-      );
+      input.onError?.(error instanceof Error ? error.message : "无法创建 FreeOS 会话");
       return { cancel: () => undefined };
     }
 

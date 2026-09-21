@@ -6,12 +6,12 @@
 
 ## 内置提供者
 
-| 后端                       | 仓库                                                                | 默认地址                | 状态       | 设置里填什么                                    |
-| -------------------------- | ------------------------------------------------------------------- | ----------------------- | ---------- | ----------------------------------------------- |
+| 后端                       | 仓库                                                                | 默认地址                | 状态       | 设置里填什么                                         |
+| -------------------------- | ------------------------------------------------------------------- | ----------------------- | ---------- | ---------------------------------------------------- |
 | **FreeOS / XYAI**          | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS)           | `http://127.0.0.1:8088` | 可用       | 地址、用户名、密码（本机已登录可无密码，复用 token） |
-| **openXYOS 组织 OS**       | [XYAIStudio/openXYOS](https://github.com/XYAIStudio/openXYOS)       | `http://127.0.0.1:3000` | 可用       | API 地址、邮箱、密码                            |
-| **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 可选探测地址；连接测试会说明未就绪              |
-| **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | 网关地址、Bearer 令牌，或从 `gateway.json` 导入 |
+| **openXYOS 组织 OS**       | [XYAIStudio/openXYOS](https://github.com/XYAIStudio/openXYOS)       | `http://127.0.0.1:3000` | 可用       | API 地址、邮箱、密码                                 |
+| **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 可选探测地址；连接测试会说明未就绪                   |
+| **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | 网关地址、Bearer 令牌，或从 `gateway.json` 导入      |
 
 先启动对应产品，再打开小元 **设置 → 后端** 填写并点「测试连接」「保存」。测试连接会附带延迟毫秒数与中文错误。本机联调**优先 FreeOS `http://127.0.0.1:8088`**（Windows 上该端口常已开放；`:3000` 未开可忽略）。最短路径：[live-freeos.md](live-freeos.md)（doctor → 设置 → 测试 → 聊天）。探活见 [live-integration.md](live-integration.md)（`npm run doctor` / `npm run live:freeos`）。
 
