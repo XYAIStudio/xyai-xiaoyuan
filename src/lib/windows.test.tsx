@@ -122,6 +122,7 @@ describe("SettingsWindow", () => {
     ]);
     expect(screen.getByText(/本机联调优先 FreeOS/)).toBeInTheDocument();
     expect(screen.getByText(/docs\/live-freeos\.md/)).toBeInTheDocument();
+    expect(screen.getByText(/本机 FreeOS 已登录时可无密码/)).toBeInTheDocument();
   });
 
   it("shows Chinese connection result after 测试连接", async () => {
@@ -137,12 +138,36 @@ describe("SettingsWindow", () => {
     fireEvent.change(await screen.findByLabelText("用户名"), {
       target: { value: "xiaoyuan" },
     });
-    fireEvent.change(screen.getByLabelText("密码（钥匙串）"), {
+    fireEvent.change(screen.getByLabelText("密码（可选，钥匙串）"), {
       target: { value: "xiaoyuan" },
     });
     fireEvent.click(screen.getByRole("button", { name: "测试连接" }));
     expect(await screen.findByTestId("connection-status")).toHaveTextContent(
       /已连接：小元/,
+    );
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("allows FreeOS 测试连接 with token only", async () => {
+    const { tauriApi } = await import("./tauriApi");
+    const { freeOsProvider } = await import("./providers/freeos");
+    const spy = vi.spyOn(freeOsProvider, "testConnection").mockResolvedValue({
+      ok: true,
+      message: "已连接：管理员",
+      latencyMs: 8,
+    });
+    render(<SettingsWindow />);
+    fireEvent.change(await screen.findByLabelText("令牌（可选，钥匙串）"), {
+      target: { value: "desktop-auth-token" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "测试连接" }));
+    expect(await screen.findByTestId("connection-status")).toHaveTextContent(
+      /已连接：管理员/,
+    );
+    expect(tauriApi.setSecret).toHaveBeenCalledWith(
+      "freeos_token",
+      "desktop-auth-token",
     );
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();

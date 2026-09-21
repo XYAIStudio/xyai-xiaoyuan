@@ -27,6 +27,8 @@ export interface SendChatInput {
   agentId: string;
   text: string;
   threadId?: string | null;
+  /** FreeOS `session_key` from POST /threads (e.g. `main:dashboard:1:dm`). */
+  sessionKey?: string | null;
   history?: ChatMessage[];
   onLifecycle?: (life: string) => void;
   onAssistantDelta?: (text: string) => void;

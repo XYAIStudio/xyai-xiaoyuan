@@ -82,6 +82,9 @@ export default function SettingsWindow() {
     if (cfg.providerId === "freeos" && password) {
       await tauriApi.setSecret("freeos_password", password);
     }
+    if (cfg.providerId === "freeos" && token) {
+      await tauriApi.setSecret("freeos_token", token);
+    }
     if (cfg.providerId === "openxyos" && password) {
       await tauriApi.setSecret("openxyos_password", password);
     }
@@ -99,7 +102,7 @@ export default function SettingsWindow() {
   const test = async () => {
     setBusy(true);
     setStatusKind("idle");
-    setStatus("正在测试…先探活，再登录");
+    setStatus("正在测试…优先复用已保存的 token");
     try {
       await tauriApi.saveConfig(cfg);
       if (password) {
@@ -108,6 +111,9 @@ export default function SettingsWindow() {
         if (cfg.providerId === "freeos" || cfg.providerId === "openxyos") {
           await tauriApi.setSecret(key, password);
         }
+      }
+      if (cfg.providerId === "freeos" && token) {
+        await tauriApi.setSecret("freeos_token", token);
       }
       if (cfg.providerId === "grokbot" && token) {
         await tauriApi.setSecret("grokbot_token", token);
@@ -122,13 +128,6 @@ export default function SettingsWindow() {
             : cfg.providerId === "xyai-studio"
               ? cfg.xyaiStudio.baseUrl
               : cfg.freeos.baseUrl;
-      if (cfg.providerId === "freeos" && !cfg.freeos.username.trim()) {
-        setStatusKind("error");
-        setStatus(
-          "请先填写 FreeOS 用户名（密码在钥匙串）。本机默认 http://127.0.0.1:8088",
-        );
-        return;
-      }
       const result = await provider.testConnection({
         baseUrl,
         username,
@@ -244,13 +243,27 @@ export default function SettingsWindow() {
                 />
               </label>
               <label>
-                密码（钥匙串）
+                密码（可选，钥匙串）
                 <input
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                 />
               </label>
+              <label>
+                令牌（可选，钥匙串）
+                <input
+                  type="password"
+                  value={token}
+                  placeholder="FreeOS WebView Local Storage 的 auth_token"
+                  onChange={(event) => setToken(event.target.value)}
+                />
+              </label>
+              <p className="settings-note">
+                本机 FreeOS 已登录时可无密码（复用 token）。空密码登录会
+                AUTH_FAILED；可粘贴桌面 WebView 的 <code>auth_token</code>
+                ，或沿用上次保存的令牌后点「测试连接」。首次接入再填用户名和密码。
+              </p>
             </>
           ) : null}
           {cfg.providerId === "openxyos" ? (

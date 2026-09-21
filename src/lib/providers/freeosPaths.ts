@@ -17,6 +17,7 @@ export const FREEOS_PATHS = {
   login: "/auth/login",
   me: "/auth/me",
   agents: "/agents",
+  /** `agentId` must be the string `agent_id` (e.g. `main`), not numeric `id`. */
   createThread: (agentId: string) => `/agents/${encodeURIComponent(agentId)}/threads`,
   threadHistory: (agentId: string, threadId: string) =>
     `/agents/${encodeURIComponent(agentId)}/threads/${encodeURIComponent(threadId)}/history?limit=50&offset=0`,

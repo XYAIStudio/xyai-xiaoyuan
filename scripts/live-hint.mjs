@@ -22,7 +22,7 @@ export function recommendLiveHint(live, mock = []) {
       : "";
 
   if (freeos?.ok) {
-    return `优先对接 FreeOS：${freeosBase}（HTTP 已就绪）。在设置 → 后端 选「FreeOS / XYAI」后点「测试连接」。${skip3000}`.trim();
+    return `优先对接 FreeOS：${freeosBase}（HTTP 已就绪）。本机 FreeOS 已登录时可无密码（复用已保存 token）。在设置 → 后端 选「FreeOS / XYAI」后点「测试连接」。${skip3000}`.trim();
   }
   if (freeos?.tcpOpen) {
     return `本机 ${PREFERRED_LIVE_PORT} 端口已开放，优先对接 FreeOS：${freeosBase}。设置里填该地址并测试连接；HTTP 探活未通过时仍先试 FreeOS，不要改去 :3000。${skip3000}`.trim();

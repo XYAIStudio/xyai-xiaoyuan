@@ -99,6 +99,24 @@ describe("FreeOS :8088 contract (mock)", () => {
     expect(history).toEqual([]);
   });
 
+  it("testConnection accepts a stored token without password", async () => {
+    handle = await startMock();
+    const secrets = new Map<string, string>([["freeos_token", "mock-freeos-token"]]);
+    const result = await freeOsProvider.testConnection({
+      baseUrl: handle.url,
+      username: "",
+      getSecret: async (key) => secrets.get(key) ?? null,
+      setSecret: async (key, value) => {
+        secrets.set(key, value);
+      },
+      deleteSecret: async (key) => {
+        secrets.delete(key);
+      },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.message).toMatch(/已连接：模拟小元/);
+  });
+
   it("rejects wrong password with Chinese AUTH_FAILED", async () => {
     handle = await startMock();
     const result = await freeOsProvider.testConnection(ctx(handle.url, "wrong"));

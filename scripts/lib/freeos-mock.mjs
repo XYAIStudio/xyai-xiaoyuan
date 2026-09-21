@@ -252,6 +252,13 @@ export function attachFreeOsUpgrade(server) {
       } catch {
         payload = {};
       }
+      if (
+        payload.type === "subscribe" ||
+        payload.type === "ping" ||
+        payload.type === "cancel"
+      ) {
+        return;
+      }
       const text = String(payload.text || payload.messages?.[0]?.content || "");
       void streamFreeOs(socket, text);
     });
