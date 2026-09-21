@@ -224,6 +224,12 @@ export async function runDoctor() {
   printGroup("模拟网关（npm run mock:backends）", mock);
   console.log("");
   console.log(`提示：${recommendLiveHint(live, mock)}`);
+  const freeos = live.find((row) => row.id === "freeos");
+  if (freeos?.ok) {
+    console.log(
+      "本机 FreeOS 已登录时，小元可复用已保存的 token（钥匙串 freeos_token / 桌面 WebView 的 auth_token），无需再填密码。",
+    );
+  }
   return { live, mock };
 }
 

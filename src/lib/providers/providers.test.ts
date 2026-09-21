@@ -8,7 +8,17 @@ import {
   apiJson,
 } from "./http";
 import { BACKEND_PROVIDERS, getProvider } from "./registry";
-import { buildWsUrl } from "./freeos";
+import {
+  buildCancelFrame,
+  buildPingFrame,
+  buildSubscribeFrame,
+  buildUserTurnFrame,
+  buildWsUrl,
+  formatFreeOsStreamError,
+  freeOsProvider,
+  mapAgents,
+} from "./freeos";
+import type { ProviderContext } from "./types";
 import { lastEmployeeReply } from "./openxyos";
 import { gatewayFileToSettings } from "./grokbot";
 import { xyaiStudioProvider } from "./xyaiStudio";
@@ -104,11 +114,118 @@ describe("http helpers", () => {
 
 describe("provider-specific helpers", () => {
   it("builds FreeOS websocket URLs with token query", () => {
-    expect(buildWsUrl("http://127.0.0.1:8088", "agent-1", "tok")).toBe(
-      "ws://127.0.0.1:8088/api/agents/agent-1/chat/ws?token=tok",
+    expect(buildWsUrl("http://127.0.0.1:8088", "main", "tok")).toBe(
+      "ws://127.0.0.1:8088/api/agents/main/chat/ws?token=tok",
     );
   });
 
+  it("maps FreeOS agents by string agent_id, not numeric id", () => {
+    expect(
+      mapAgents([
+        { id: 1, agent_id: "main", name: "主助手", state: "idle" },
+        { id: 2, name: "legacy" },
+      ]),
+    ).toEqual([
+      { id: "main", name: "主助手", state: "idle" },
+      { id: "2", name: "legacy", state: undefined },
+    ]);
+  });
+
+  it("builds subscribe then user_turn frames with session_key", () => {
+    expect(buildSubscribeFrame("main:dashboard:1:dm")).toEqual({
+      type: "subscribe",
+      thread_id: "main:dashboard:1:dm",
+    });
+    expect(
+      buildUserTurnFrame({
+        text: "你好",
+        threadId: "tid-1",
+        sessionKey: "main:dashboard:1:dm",
+      }),
+    ).toEqual({
+      type: "user_turn",
+      text: "你好",
+      session_key: "main:dashboard:1:dm",
+      thread_id: "tid-1",
+      messages: [{ role: "user", content: "你好" }],
+    });
+    expect(buildCancelFrame("tid-1")).toEqual({ type: "cancel", thread_id: "tid-1" });
+    expect(buildPingFrame()).toEqual({ type: "ping" });
+    expect(formatFreeOsStreamError("模型调用多次重试后仍失败，请检查供应商")).toMatch(
+      /模型\/供应商配置/,
+    );
+  });
+});
+
+describe("FreeOS sendChat websocket frames", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("sends subscribe then user_turn with session_key on open", async () => {
+    class FakeWebSocket {
+      static OPEN = 1;
+      static CONNECTING = 0;
+      static instances: FakeWebSocket[] = [];
+      url: string;
+      readyState = 0;
+      sent: unknown[] = [];
+      onopen: (() => void) | null = null;
+      onmessage: ((event: { data: string }) => void) | null = null;
+      onerror: (() => void) | null = null;
+      onclose: (() => void) | null = null;
+      constructor(url: string) {
+        this.url = url;
+        FakeWebSocket.instances.push(this);
+        queueMicrotask(() => {
+          this.readyState = FakeWebSocket.OPEN;
+          this.onopen?.();
+        });
+      }
+      send(data: string) {
+        this.sent.push(JSON.parse(data));
+      }
+      close() {
+        this.readyState = 3;
+        this.onclose?.();
+      }
+    }
+    vi.stubGlobal("WebSocket", FakeWebSocket);
+    const secrets = new Map<string, string>([["freeos_token", "tok"]]);
+    const ctx: ProviderContext = {
+      baseUrl: "http://127.0.0.1:8088",
+      username: "xiaoyuan",
+      getSecret: async (key) => secrets.get(key) ?? null,
+      setSecret: async (key, value) => {
+        secrets.set(key, value);
+      },
+      deleteSecret: async (key) => {
+        secrets.delete(key);
+      },
+    };
+    await freeOsProvider.sendChat(ctx, {
+      agentId: "main",
+      text: "hello",
+      threadId: "tid-1",
+      sessionKey: "main:dashboard:1:dm",
+    });
+    await vi.waitFor(() => {
+      expect(FakeWebSocket.instances[0]?.sent.length).toBeGreaterThanOrEqual(2);
+    });
+    const socket = FakeWebSocket.instances[0];
+    expect(socket.url).toBe("ws://127.0.0.1:8088/api/agents/main/chat/ws?token=tok");
+    expect(socket.sent[0]).toEqual({ type: "subscribe", thread_id: "tid-1" });
+    expect(socket.sent[1]).toEqual({
+      type: "user_turn",
+      text: "hello",
+      session_key: "main:dashboard:1:dm",
+      thread_id: "tid-1",
+      messages: [{ role: "user", content: "hello" }],
+    });
+  });
+});
+
+describe("openXYOS and grokbot helpers", () => {
   it("reads the last openXYOS employee reply and rewrites grokbot bind addresses", () => {
     expect(
       lastEmployeeReply([

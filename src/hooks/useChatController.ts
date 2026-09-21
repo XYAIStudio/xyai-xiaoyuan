@@ -40,6 +40,7 @@ export function useChatController() {
   const connectionRef = useRef(connection);
   connectionRef.current = connection;
   const handleRef = useRef<{ cancel: () => void } | null>(null);
+  const sessionKeyRef = useRef<Record<string, string>>({});
   const sendNowRef = useRef<(text: string) => Promise<void>>(async () => undefined);
   const loadSeq = useRef(0);
   const mounted = useRef(true);
@@ -82,9 +83,10 @@ export function useChatController() {
         let threadId = resolveThreadForAgent(cfg, nextId);
         let history: ChatMessage[] = [];
         if (provider.supportsThreads && provider.ensureThread) {
-          if (!threadId) {
+          if (!threadId || !sessionKeyRef.current[nextId]) {
             const created = await provider.ensureThread(contextOf(cfg), nextId);
             threadId = created.threadId;
+            if (created.sessionKey) sessionKeyRef.current[nextId] = created.sessionKey;
           }
           const nextCfg = withThreadForAgent(cfg, nextId, threadId);
           await tauriApi.patchConfig({
@@ -189,11 +191,25 @@ export function useChatController() {
       setConnection("streaming");
       const hint = poseHintFromUserText(text);
       emitLife(hint === "create" ? "create" : "thinking");
-      const threadId = resolveThreadForAgent(cfg, agentId);
+      let threadId = resolveThreadForAgent(cfg, agentId);
+      let sessionKey = sessionKeyRef.current[agentId];
+      if (provider.ensureThread && (!threadId || !sessionKey)) {
+        const created = await provider.ensureThread(contextOf(cfg), agentId);
+        threadId = created.threadId;
+        if (created.sessionKey) sessionKeyRef.current[agentId] = created.sessionKey;
+        sessionKey = sessionKeyRef.current[agentId];
+        const nextCfg = withThreadForAgent(cfg, agentId, threadId);
+        await tauriApi.patchConfig({
+          lastAgentId: nextCfg.lastAgentId,
+          threadIdByAgent: nextCfg.threadIdByAgent,
+        });
+        configRef.current = nextCfg;
+      }
       handleRef.current = await provider.sendChat(contextOf(cfg), {
         agentId,
         text,
         threadId,
+        sessionKey,
         history,
         onLifecycle: (life) => {
           if (hint === "create" && (life === "thinking" || life === "streaming")) {
@@ -328,6 +344,7 @@ export function useChatController() {
         return;
       }
       const created = await provider.ensureThread(contextOf(cfg), agentId);
+      if (created.sessionKey) sessionKeyRef.current[agentId] = created.sessionKey;
       const next = withThreadForAgent(cfg, agentId, created.threadId);
       await tauriApi.patchConfig({
         lastAgentId: next.lastAgentId,

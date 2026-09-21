@@ -6,12 +6,12 @@
 
 ## 内置提供者
 
-| 后端                       | 仓库                                                                | 默认地址                | 状态       | 设置里填什么                                    |
-| -------------------------- | ------------------------------------------------------------------- | ----------------------- | ---------- | ----------------------------------------------- |
-| **FreeOS / XYAI**          | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS)           | `http://127.0.0.1:8088` | 可用       | 地址、用户名、密码                              |
-| **openXYOS 组织 OS**       | [XYAIStudio/openXYOS](https://github.com/XYAIStudio/openXYOS)       | `http://127.0.0.1:3000` | 可用       | API 地址、邮箱、密码                            |
-| **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 可选探测地址；连接测试会说明未就绪              |
-| **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | 网关地址、Bearer 令牌，或从 `gateway.json` 导入 |
+| 后端                       | 仓库                                                                | 默认地址                | 状态       | 设置里填什么                                         |
+| -------------------------- | ------------------------------------------------------------------- | ----------------------- | ---------- | ---------------------------------------------------- |
+| **FreeOS / XYAI**          | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS)           | `http://127.0.0.1:8088` | 可用       | 地址、用户名、密码（本机已登录可无密码，复用 token） |
+| **openXYOS 组织 OS**       | [XYAIStudio/openXYOS](https://github.com/XYAIStudio/openXYOS)       | `http://127.0.0.1:3000` | 可用       | API 地址、邮箱、密码                                 |
+| **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 可选探测地址；连接测试会说明未就绪                   |
+| **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | 网关地址、Bearer 令牌，或从 `gateway.json` 导入      |
 
 先启动对应产品，再打开小元 **设置 → 后端** 填写并点「测试连接」「保存」。测试连接会附带延迟毫秒数与中文错误。本机联调**优先 FreeOS `http://127.0.0.1:8088`**（Windows 上该端口常已开放；`:3000` 未开可忽略）。最短路径：[live-freeos.md](live-freeos.md)（doctor → 设置 → 测试 → 聊天）。探活见 [live-integration.md](live-integration.md)（`npm run doctor` / `npm run live:freeos`）。
 
@@ -25,13 +25,21 @@ HTTP 请求默认 15 秒超时（`src/lib/providers/http.ts`）。不要臆造�
 - `GET /api/setup/status` `{setup_required, ...}`
 - `POST /api/auth/login` `{username,password}` → `{access_token,user}`（用户名也可是邮箱）
 - `GET /api/auth/me`
-- `GET /api/agents`（`id` / `agent_id` / `name` / `state`）
-- `POST /api/agents/{id}/threads` → `{thread_id, session_key}`（主路径，FreeOS 路由器）
-- `GET .../threads/{id}/history`
+- `GET /api/agents`（同时有数字 `id` 与字符串 `agent_id`，例如 `main`）
+- `POST /api/agents/{agent_id}/threads` → `{thread_id, session_key}`（主路径；路由必须用字符串 `agent_id`，不要用数字 `id`）
+- `GET /api/agents/{agent_id}/threads` 返回数组
+- `GET .../threads/{thread_id}/history`
 - 若 `/threads` 返回 404，回退 `.../chat/sessions`（仅文档表别名）
-- WebSocket `/api/agents/{id}/chat/ws?token=`
+- WebSocket `ws://host/api/agents/{agent_id}/chat/ws?token=`
+  - 打开后先发 `{type:"subscribe", thread_id}`，再发 `{type:"user_turn", text, session_key, thread_id, messages:[{role:"user",content}]}`
+  - 取消 `{type:"cancel", thread_id}`；保活 `{type:"ping"}`
+  - 入站常见 `turn_status` / `error`；若有 `token`/`text` 增量与 `done` 也处理。`turn_status.active === false` 在无 `done` 时视为结束
 
-设置字段：`freeos.baseUrl`、`freeos.username`，密码钥匙串键 `freeos_password`。
+**桌面 token-first 联调：** 空密码登录会 `AUTH_FAILED`。若本机 FreeOS 桌面已登录，小元优先复用钥匙串 `freeos_token`（对应 WebView Local Storage 的 `auth_token`），`GET /api/auth/me` 通过即可测连接、列智能体，不必再填密码。仅在没有有效 token 时才 `POST /api/auth/login`（首次接入）。
+
+设置字段：`freeos.baseUrl`、`freeos.username`，钥匙串键 `freeos_password`、`freeos_token`。
+
+**模型错误：** 「模型调用多次重试后仍失败…」来自 FreeOS 自己的模型/供应商配置，不是小元的连接或协议问题；对话里会原样标出。
 
 ## openXYOS
 

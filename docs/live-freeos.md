@@ -36,7 +36,8 @@ make doctor
 
 - 后端选 **FreeOS / XYAI**
 - 地址：`http://127.0.0.1:8088`
-- 填 FreeOS 用户名和密码（钥匙串，勿提交）
+- 本机 FreeOS 已登录时可无密码（复用 token）：粘贴 WebView Local Storage 的 `auth_token`，或沿用上次保存的令牌后点「测试连接」
+- 首次接入再填用户名和密码（钥匙串，勿提交）。空密码登录会 `AUTH_FAILED`
 
 `npm run live:freeos` 会打印同一组字段。
 
@@ -54,7 +55,7 @@ make doctor
 | ----------------------- | ------------------------------------------- |
 | 端口无人监听 / 无法连接 | 先起 FreeOS，或 `npm run doctor`            |
 | 尚未完成初始化          | 浏览器打开 `http://127.0.0.1:8088` 走完向导 |
-| 用户名或密码错误        | 核对 FreeOS 账户（登录可用用户名或邮箱）    |
+| 用户名或密码错误        | 空密码会失败；核对账户，或改用已保存 token  |
 | 登录被锁定              | 试太多次；稍等或在 FreeOS 解锁              |
 | 接口不存在              | 确认地址是 :8088，不要填 openXYOS :3000     |
 
@@ -62,21 +63,23 @@ make doctor
 
 保存后打开对话窗，选智能体，发一条消息。对话走 WebSocket：
 
-`ws://127.0.0.1:8088/api/agents/{id}/chat/ws?token=`
+`ws://127.0.0.1:8088/api/agents/{agent_id}/chat/ws?token=`
+
+智能体路由一律用字符串 `agent_id`（如 `main`），不要用列表里的数字 `id`。打开后先 `subscribe` 再 `user_turn`（带 `session_key`）。若看到「模型调用多次重试后仍失败」，是 FreeOS 模型配置，不是小元协议。
 
 ## 我们对齐的 FreeOS 路由
 
 对照 FreeOS 仓库 **实际路由器**（`src/octop/api/routers/`），不是臆造：
 
-| 用途     | 路径                                                            |
-| -------- | --------------------------------------------------------------- |
-| 探活     | `GET /api/health`、`GET /api/setup/status`                      |
-| 登录     | `POST /api/auth/login` `{username,password}` → `{access_token}` |
-| 当前用户 | `GET /api/auth/me`                                              |
-| 智能体   | `GET /api/agents`                                               |
-| 会话     | `POST /api/agents/{id}/threads`（主路径）                       |
-| 历史     | `GET /api/agents/{id}/threads/{id}/history`                     |
-| 对话     | WebSocket `/api/agents/{id}/chat/ws?token=`                     |
+| 用途     | 路径                                                              |
+| -------- | ----------------------------------------------------------------- |
+| 探活     | `GET /api/health`、`GET /api/setup/status`                        |
+| 登录     | `POST /api/auth/login` `{username,password}` → `{access_token}`   |
+| 当前用户 | `GET /api/auth/me`                                                |
+| 智能体   | `GET /api/agents`（路由用字符串 `agent_id`）                      |
+| 会话     | `POST /api/agents/{agent_id}/threads` → `{thread_id,session_key}` |
+| 历史     | `GET /api/agents/{agent_id}/threads/{thread_id}/history`          |
+| 对话     | WebSocket `/api/agents/{agent_id}/chat/ws?token=`                 |
 
 `docs/api.md` 里还有 `/chat/sessions` 表。小元只在主路径 **404** 时回退到该别名，避免文档/代码不一致时联调中断。
 

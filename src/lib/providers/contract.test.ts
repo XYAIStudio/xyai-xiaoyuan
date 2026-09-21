@@ -73,6 +73,7 @@ describe("live endpoint contract", () => {
     ]);
     expect(httpReady).toMatch(/HTTP 已就绪/);
     expect(httpReady).toMatch(/FreeOS \/ XYAI/);
+    expect(httpReady).toMatch(/无密码|token/);
   });
 });
 
@@ -93,6 +94,56 @@ describe("connection test contract", () => {
     expect(timed.ok).toBe(true);
     expect(timed.latencyMs).toBeGreaterThanOrEqual(0);
     expect(timed.message).toMatch(/已连接：小元（\d+ms）/);
+  });
+
+  it("FreeOS testConnection reuses a valid stored token without login", async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/api/health")) {
+        return new Response(JSON.stringify({ status: "ok", version: "1.0" }), {
+          status: 200,
+        });
+      }
+      if (String(url).endsWith("/api/setup/status")) {
+        return new Response(JSON.stringify({ setup_required: false }), { status: 200 });
+      }
+      if (String(url).endsWith("/api/auth/login")) {
+        throw new Error("login should not run when token is valid");
+      }
+      if (String(url).endsWith("/api/auth/me")) {
+        expect(new Headers(init?.headers).get("Authorization")).toBe(
+          "Bearer saved-tok",
+        );
+        return new Response(
+          JSON.stringify({ username: "admin", display_name: "管理员", role: "admin" }),
+          { status: 200 },
+        );
+      }
+      if (String(url).endsWith("/api/agents")) {
+        return new Response(
+          JSON.stringify([{ id: 1, agent_id: "main", name: "主助手" }]),
+          { status: 200 },
+        );
+      }
+      return new Response("missing", { status: 404 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const secrets = new Map<string, string>([["freeos_token", "saved-tok"]]);
+    const result = await freeOsProvider.testConnection({
+      baseUrl: "http://127.0.0.1:8088",
+      username: "",
+      getSecret: async (key) => secrets.get(key) ?? null,
+      setSecret: async (key, value) => {
+        secrets.set(key, value);
+      },
+      deleteSecret: async (key) => {
+        secrets.delete(key);
+      },
+    });
+    expect(result.ok).toBe(true);
+    expect(result.message).toMatch(/已连接：管理员/);
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/auth/login")),
+    ).toBe(false);
   });
 
   it("FreeOS testConnection hits health + setup + login + me", async () => {
