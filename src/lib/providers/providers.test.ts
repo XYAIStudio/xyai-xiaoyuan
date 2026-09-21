@@ -4,6 +4,7 @@ import {
   extractTextContent,
   normalizeBaseUrl,
   parseApiErrorMessage,
+  parseApiErrorCode,
   apiJson,
 } from "./http";
 import { BACKEND_PROVIDERS, getProvider } from "./registry";
@@ -40,6 +41,16 @@ describe("http helpers", () => {
   it("parses errors and prefixes /api unless already present", async () => {
     expect(normalizeBaseUrl("http://127.0.0.1:8088/")).toBe("http://127.0.0.1:8088");
     expect(parseApiErrorMessage('{"detail":"nope"}')).toBe("nope");
+    expect(
+      parseApiErrorMessage(
+        '{"error":{"code":"AUTH_FAILED","message":"invalid credentials"}}',
+      ),
+    ).toBe("invalid credentials");
+    expect(
+      parseApiErrorCode(
+        '{"error":{"code":"AUTH_FAILED","message":"invalid credentials"}}',
+      ),
+    ).toBe("AUTH_FAILED");
     expect(extractTextContent([{ text: "a" }, { text: "b" }])).toBe("ab");
 
     const fetchMock = vi.fn(async (url: string) => {

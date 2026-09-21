@@ -21,6 +21,23 @@ Release 工作流已设置 `updaterJsonPreferNsis: true`，因此 `latest.json` 
 
 ### 生成本地密钥
 
+推荐用仓库脚本（会打印下面的 GitHub Secret 步骤，**不会**伪造 Authenticode 证书）：
+
+```bash
+bash scripts/generate-tauri-signer.sh
+# 只看步骤、不生成文件：
+bash scripts/generate-tauri-signer.sh --print-only
+```
+
+Windows PowerShell：
+
+```powershell
+pwsh scripts/generate-tauri-signer.ps1
+pwsh scripts/generate-tauri-signer.ps1 -PrintOnly
+```
+
+也可以直接：
+
 ```bash
 npx tauri signer generate -w ~/.tauri/xyai-xiaoyuan.key
 ```
@@ -45,7 +62,7 @@ npx tauri signer generate -w ~/.tauri/xyai-xiaoyuan.key
 | `TAURI_SIGNING_PRIVATE_KEY`          | 要打 updater 产物时必填  | 私钥文件**全文** |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 生成密钥时设了密码才需要 | 私钥密码         |
 
-工作流会把这两个值传给 `tauri-action` / `npx tauri build`。
+工作流（`.github/workflows/release.yml` 与 `windows.yml`）会把这两个值传给 `tauri-action` / `npx tauri build`。没有 `TAURI_SIGNING_PRIVATE_KEY` 时自动关闭 `createUpdaterArtifacts`，仍产出未签名 NSIS。
 
 ### 没有密钥时
 

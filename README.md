@@ -86,7 +86,7 @@
 
 | 后端                       | 仓库                                                                | 默认地址                | 状态       | 实际对接的公开接口                                                                                                                                                                                                                                                   |
 | -------------------------- | ------------------------------------------------------------------- | ----------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **FreeOS / XYAI**          | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS)           | `http://127.0.0.1:8088` | 可用       | `GET /api/setup/status` · `POST /api/auth/login` `{username,password}` → `{access_token}` · `GET /api/auth/me` · `GET /api/agents` · `POST /api/agents/{id}/threads` · `GET .../threads/{id}/history` · WebSocket `/api/agents/{id}/chat/ws?token=`                  |
+| **FreeOS / XYAI**          | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS)           | `http://127.0.0.1:8088` | 可用       | `GET /api/health` · `GET /api/setup/status` · `POST /api/auth/login` `{username,password}` → `{access_token}` · `GET /api/auth/me` · `GET /api/agents` · `POST /api/agents/{id}/threads` · history · WebSocket `/api/agents/{id}/chat/ws?token=`                     |
 | **openXYOS 组织 OS**       | [XYAIStudio/openXYOS](https://github.com/XYAIStudio/openXYOS)       | `http://127.0.0.1:3000` | 可用       | `GET /api/health` · `POST /api/auth/login` `{email,password}` → `{data.tokens.accessToken}` · `GET /api/auth/me` · `GET /api/chats` · `GET/POST /api/chats/:id/messages` · `POST /api/assistant/chat` `{message,history,session_id}` → `{reply}`（小雄）             |
 | **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 本地优先 Electron 工作台。公开仓库没有桌宠可调用的 listAgents / 对话 HTTP API。现有互通是 Studio → openXYOS：`POST /api/xyai/agents/import` 等，请求头 `X-XYAI-Interop: studio`。提供方已注册，设置里可见，连接测试会说明未就绪。                                    |
 | **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | `GET /health`（无鉴权）· `POST /api/listAgents` · `POST /api/sendPrompt` `{agentId,prompt}`，Bearer 令牌。可从 `sand-data/gateway.json` 的 `{port,scheme,host,token}` 导入（`0.0.0.0` / `::` 会改写为 `127.0.0.1`）。**仅本机 / 隧道使用，路径可能随网关版本变化。** |
@@ -161,7 +161,7 @@ npm run mock:backends
 | openXYOS | `http://127.0.0.1:13000` | `xiaoyuan@xyai.local` / `xiaoyuan` |
 | Grok Bot | `http://127.0.0.1:11340` | 令牌 `mock-token`                  |
 
-另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」（会显示延迟）。真实本机联调优先 FreeOS `http://127.0.0.1:8088`（`:3000` 未开可忽略）：`npm run doctor` / `npm run live:freeos`，见 [docs/live-integration.md](docs/live-integration.md)。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。XYAI Studio 没有模拟对话入口，因为它在产品侧仍是未就绪。详见 [docs/backends.md](docs/backends.md)。
+另开终端 `npm run tauri dev`，在设置里改地址后点「测试连接」（会显示延迟）。真实本机联调优先 FreeOS `http://127.0.0.1:8088`（`:3000` 未开可忽略）：`npm run doctor` → 设置 → 测试连接 → 聊天，见 [docs/live-freeos.md](docs/live-freeos.md)。试着发「谢谢小元」「画一张星空」可分别看到比心 / 创作姿态。XYAI Studio 没有模拟对话入口，因为它在产品侧仍是未就绪。详见 [docs/backends.md](docs/backends.md)。
 
 ### 小元 16 表情
 
@@ -201,6 +201,8 @@ npm run mock:backends
 公开发布前请**自己生成**密钥（仓库里的 pubkey 仅作脚手架，私钥不会进 Git）：
 
 ```bash
+bash scripts/generate-tauri-signer.sh
+# 或
 npx tauri signer generate -w ~/.tauri/xyai-xiaoyuan.key
 ```
 
@@ -245,6 +247,7 @@ make check
 | [姿态与动画](docs/poses.md)                  | 16 官方造型、状态映射、锁定与叠化                     |
 | [活动感知与声音](docs/activity-and-sound.md) | 键盘鼠标空闲、屏幕理解默认关、自制音效                |
 | [本机联调](docs/live-integration.md)         | `npm run doctor`、真实后端与 `.env.example`           |
+| [FreeOS 联调](docs/live-freeos.md)           | doctor → 设置 → 测试连接 → 聊天（:8088）              |
 | [形象画廊](docs/gallery.md)                  | 动态 GIF + 16 静态造型预览                            |
 | [Windows 安装包](docs/packaging-windows.md)  | NSIS CI、Artifacts、`latest.json`                     |
 | [签名与更新](docs/signing.md)                | updater 私钥、可选 Authenticode                       |

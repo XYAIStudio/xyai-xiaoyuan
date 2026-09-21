@@ -28,6 +28,7 @@ help:
 	@echo "  mock             npm run mock:backends"
 	@echo "  doctor           npm run doctor (probe localhost backends)"
 	@echo "  live             print live 联调 URLs"
+	@echo "  signer           print TAURI_SIGNING_PRIVATE_KEY GitHub secret steps"
 	@echo "  audio            generate original companion wavs"
 	@echo "  build            npm run tauri build"
 	@echo "  build-windows    print how to get NSIS from Actions"
@@ -59,6 +60,10 @@ doctor:
 .PHONY: live
 live:
 	npm run live
+
+.PHONY: signer
+signer:
+	bash scripts/generate-tauri-signer.sh --print-only
 
 .PHONY: audio
 audio:

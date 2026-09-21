@@ -67,7 +67,7 @@ npm run doctor
 npm run live:freeos
 ```
 
-`:3000` 未开可忽略。说明见 [本机联调](live-integration.md)。可复制 `.env.example` 覆盖默认端口。
+`:3000` 未开可忽略。四步走：[FreeOS 联调](live-freeos.md)。多后端探活见 [本机联调](live-integration.md)。可复制 `.env.example` 覆盖默认端口。
 
 ## 质量检查
 

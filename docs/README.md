@@ -13,6 +13,7 @@ XYAI精灵小元的完整说明都在本目录。界面文案与文档以中文�
 | [姿态与动画](poses.md)                  | 16 官方造型、状态映射、锁定与叠化                                          |
 | [活动感知与声音](activity-and-sound.md) | 键盘鼠标空闲、屏幕理解（默认关）、隐私边界、自制音效                       |
 | [本机联调](live-integration.md)         | `npm run doctor`、真实 FreeOS / openXYOS / Grok Bot、`.env.example`        |
+| [FreeOS 联调](live-freeos.md)           | doctor → 设置 → 测试连接 → 聊天（默认 :8088）                              |
 | [形象画廊](gallery.md)                  | 动态 GIF 与 16 静态造型预览（`assets/showcase/`）                          |
 | [Windows 安装包](packaging-windows.md)  | NSIS CI、Artifacts、`latest.json`、为何不打 MSI                            |
 | [签名与更新](signing.md)                | `TAURI_SIGNING_PRIVATE_KEY`、可选 Authenticode、发布检查清单               |

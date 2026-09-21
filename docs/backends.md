@@ -13,7 +13,7 @@
 | **XYAI Studio 桌面工作台** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | （无远程对话入口）      | **未就绪** | 可选探测地址；连接测试会说明未就绪              |
 | **本机 Grok Bot**          | 本机网关（额外提供者）                                              | `http://127.0.0.1:1340` | 可用       | 网关地址、Bearer 令牌，或从 `gateway.json` 导入 |
 
-先启动对应产品，再打开小元 **设置 → 后端** 填写并点「测试连接」「保存」。测试连接会附带延迟毫秒数。本机联调**优先 FreeOS `http://127.0.0.1:8088`**（Windows 上该端口常已开放；`:3000` 未开可忽略）。探活见 [live-integration.md](live-integration.md)（`npm run doctor` / `npm run live:freeos`）。
+先启动对应产品，再打开小元 **设置 → 后端** 填写并点「测试连接」「保存」。测试连接会附带延迟毫秒数与中文错误。本机联调**优先 FreeOS `http://127.0.0.1:8088`**（Windows 上该端口常已开放；`:3000` 未开可忽略）。最短路径：[live-freeos.md](live-freeos.md)（doctor → 设置 → 测试 → 聊天）。探活见 [live-integration.md](live-integration.md)（`npm run doctor` / `npm run live:freeos`）。
 
 HTTP 请求默认 15 秒超时（`src/lib/providers/http.ts`）。不要臆造端点：下列接口均来自各仓库当前公开路由。
 
@@ -21,12 +21,14 @@ HTTP 请求默认 15 秒超时（`src/lib/providers/http.ts`）。不要臆造�
 
 实际对接：
 
-- `GET /api/setup/status`
-- `POST /api/auth/login` `{username,password}` → `{access_token}`
+- `GET /api/health` `{status, version}`
+- `GET /api/setup/status` `{setup_required, ...}`
+- `POST /api/auth/login` `{username,password}` → `{access_token,user}`（用户名也可是邮箱）
 - `GET /api/auth/me`
-- `GET /api/agents`
-- `POST /api/agents/{id}/threads`
+- `GET /api/agents`（`id` / `agent_id` / `name` / `state`）
+- `POST /api/agents/{id}/threads` → `{thread_id, session_key}`（主路径，FreeOS 路由器）
 - `GET .../threads/{id}/history`
+- 若 `/threads` 返回 404，回退 `.../chat/sessions`（仅文档表别名）
 - WebSocket `/api/agents/{id}/chat/ws?token=`
 
 设置字段：`freeos.baseUrl`、`freeos.username`，密码钥匙串键 `freeos_password`。

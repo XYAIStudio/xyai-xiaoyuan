@@ -4,7 +4,7 @@
 
 应用内窗口标题仍是「XYAI精灵小元」。安装包文件名使用 ASCII 产品名 **XYAI Xiaoyuan**（`src-tauri/tauri.windows.conf.json`），避免 WiX/NSIS 路径编码问题。
 
-签名密钥、Authenticode 与 `latest.json` 的逐步操作见 **[signing.md](signing.md)**。
+签名密钥、Authenticode 与 `latest.json` 的逐步操作见 **[signing.md](signing.md)**。本地可用 `bash scripts/generate-tauri-signer.sh --print-only` 打印 GitHub Secret 步骤（不生成证书）。
 
 ## CI 怎么打 NSIS
 

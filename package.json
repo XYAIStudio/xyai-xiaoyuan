@@ -15,6 +15,7 @@
     "live:freeos": "node scripts/live-env.mjs freeos",
     "live:openxyos": "node scripts/live-env.mjs openxyos",
     "live:grokbot": "node scripts/live-env.mjs grokbot",
+    "signer:print": "bash scripts/generate-tauri-signer.sh --print-only",
     "audio:generate": "python3 scripts/generate-audio.py",
     "test": "vitest run && node scripts/check-audio.mjs",
     "test:coverage": "vitest run --coverage",
