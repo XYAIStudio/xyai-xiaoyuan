@@ -1,3 +1,6 @@
+// @vitest-environment node
+/** Real HTTP mock — Node fetch, not jsdom (CI jsdom times out on 127.0.0.1). */
+
 import { afterEach, describe, expect, it } from "vitest";
 
 import { describeNetworkError } from "./connection";
