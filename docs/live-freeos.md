@@ -71,15 +71,15 @@ make doctor
 
 对照 FreeOS 仓库 **实际路由器**（`src/octop/api/routers/`），不是臆造：
 
-| 用途     | 路径                                                            |
-| -------- | --------------------------------------------------------------- |
-| 探活     | `GET /api/health`、`GET /api/setup/status`                      |
-| 登录     | `POST /api/auth/login` `{username,password}` → `{access_token}` |
-| 当前用户 | `GET /api/auth/me`                                              |
-| 智能体   | `GET /api/agents`（路由用字符串 `agent_id`）                    |
+| 用途     | 路径                                                              |
+| -------- | ----------------------------------------------------------------- |
+| 探活     | `GET /api/health`、`GET /api/setup/status`                        |
+| 登录     | `POST /api/auth/login` `{username,password}` → `{access_token}`   |
+| 当前用户 | `GET /api/auth/me`                                                |
+| 智能体   | `GET /api/agents`（路由用字符串 `agent_id`）                      |
 | 会话     | `POST /api/agents/{agent_id}/threads` → `{thread_id,session_key}` |
-| 历史     | `GET /api/agents/{agent_id}/threads/{thread_id}/history`        |
-| 对话     | WebSocket `/api/agents/{agent_id}/chat/ws?token=`               |
+| 历史     | `GET /api/agents/{agent_id}/threads/{thread_id}/history`          |
+| 对话     | WebSocket `/api/agents/{agent_id}/chat/ws?token=`                 |
 
 `docs/api.md` 里还有 `/chat/sessions` 表。小元只在主路径 **404** 时回退到该别名，避免文档/代码不一致时联调中断。
 

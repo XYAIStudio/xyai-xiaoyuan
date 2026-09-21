@@ -30,11 +30,12 @@ async function storedToken(ctx: ProviderContext): Promise<string | null> {
   return token || null;
 }
 
+/** Live empty-password POST /auth/login returns AUTH_FAILED. Token reuse is the path. */
 async function login(ctx: ProviderContext): Promise<{ access_token: string }> {
   const password = await ctx.getSecret(PASSWORD_KEY);
   if (!ctx.username?.trim() || !password) {
     throw new Error(
-      "请先在设置中填写 FreeOS 用户名和密码，或粘贴本机已登录桌面的 auth_token（无密码可直接复用）",
+      "请先在设置中填写 FreeOS 用户名和密码，或粘贴已登录桌面的 auth_token（空密码登录会 AUTH_FAILED，只能复用 token）",
     );
   }
   const result = await apiJson<Record<string, unknown>>(
@@ -77,6 +78,7 @@ async function resolveAccessToken(
   return { token: access_token };
 }
 
+/** Use stored TOKEN_KEY; login only when the token is missing or /auth/me-style 401. */
 async function withToken<T>(
   ctx: ProviderContext,
   operation: (token: string) => Promise<T>,
