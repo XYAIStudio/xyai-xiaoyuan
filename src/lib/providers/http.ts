@@ -3,23 +3,49 @@ import { describeNetworkError } from "./connection";
 export class ProviderHttpError extends Error {
   status: number;
   body: string;
+  code?: string;
   constructor(status: number, body: string, message?: string) {
     super(message || parseApiErrorMessage(body) || `HTTP ${status}`);
     this.status = status;
     this.body = body;
+    this.code = parseApiErrorCode(body) ?? undefined;
   }
+}
+
+function asErrorEnvelope(data: unknown): {
+  detail?: unknown;
+  message?: unknown;
+  error?: { message?: unknown; code?: unknown } | string;
+} | null {
+  return data && typeof data === "object"
+    ? (data as {
+        detail?: unknown;
+        message?: unknown;
+        error?: { message?: unknown; code?: unknown } | string;
+      })
+    : null;
+}
+
+export function parseApiErrorCode(body: string): string | null {
+  const trimmed = body.trim();
+  if (!trimmed) return null;
+  try {
+    const data = asErrorEnvelope(JSON.parse(trimmed) as unknown);
+    if (data?.error && typeof data.error === "object" && typeof data.error.code === "string") {
+      return data.error.code.trim() || null;
+    }
+  } catch {
+    /* not JSON */
+  }
+  return null;
 }
 
 export function parseApiErrorMessage(body: string): string | null {
   const trimmed = body.trim();
   if (!trimmed) return null;
   try {
-    const data = JSON.parse(trimmed) as {
-      detail?: unknown;
-      message?: unknown;
-      error?: { message?: unknown } | string;
-    };
-    if (data && typeof data === "object") {
+    const data = asErrorEnvelope(JSON.parse(trimmed) as unknown);
+    if (data) {
       if (
         data.error &&
         typeof data.error === "object" &&

@@ -4,6 +4,8 @@
 
 **推荐顺序：FreeOS `http://127.0.0.1:8088`。** Windows 本机端口扫描常见情况是 **8088 已开放**（多半是 FreeOS），**3000 未开**。设置默认就是 FreeOS / 8088；openXYOS 没起来时不要改端口，直接联调 8088。
 
+最短路径（doctor → 设置 → 测试连接 → 聊天）见 **[live-freeos.md](live-freeos.md)**。
+
 ## 一键探活
 
 ```bash
@@ -76,7 +78,7 @@ npm run mock:backends
 | openXYOS | `xiaoyuan@xyai.local` / `xiaoyuan` |
 | Grok Bot | 令牌 `mock-token`                  |
 
-集成测试仍打模拟契约（`src/lib/providers/contract.test.ts` + `providers.test.ts`），不依赖本机真服务。
+集成测试打模拟契约（`src/lib/providers/freeos.integration.test.ts` + `contract.test.ts`），模拟网关复用 `scripts/lib/freeos-mock.mjs`，不依赖本机真服务。
 
 ## 常见失败
 

@@ -5,6 +5,7 @@ export const LIVE_DEFAULTS = {
     url: "http://127.0.0.1:8088",
     port: 8088,
     path: "/api/setup/status",
+    healthPath: "/api/health",
   },
   openxyos: {
     id: "openxyos",

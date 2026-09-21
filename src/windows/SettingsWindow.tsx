@@ -23,6 +23,7 @@ export default function SettingsWindow() {
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
   const [status, setStatus] = useState("");
+  const [statusKind, setStatusKind] = useState<"idle" | "ok" | "error">("idle");
   const [busy, setBusy] = useState(false);
   const [version, setVersion] = useState(APP_VERSION);
   const [update, setUpdate] = useState<UpdateCheckResult>({
@@ -92,11 +93,13 @@ export default function SettingsWindow() {
     await tauriApi.emitMascotChanged(cfg.mascotId);
     await tauriApi.emitConfigUpdated();
     setStatus("已保存");
+    setStatusKind("ok");
   };
 
   const test = async () => {
     setBusy(true);
-    setStatus("正在测试…");
+    setStatusKind("idle");
+    setStatus("正在测试…先探活，再登录");
     try {
       await tauriApi.saveConfig(cfg);
       if (password) {
@@ -119,6 +122,11 @@ export default function SettingsWindow() {
             : cfg.providerId === "xyai-studio"
               ? cfg.xyaiStudio.baseUrl
               : cfg.freeos.baseUrl;
+      if (cfg.providerId === "freeos" && !cfg.freeos.username.trim() && !password) {
+        setStatusKind("error");
+        setStatus("请先填写 FreeOS 用户名和密码，再点测试连接（本机默认 http://127.0.0.1:8088）");
+        return;
+      }
       const result = await provider.testConnection({
         baseUrl,
         username,
@@ -126,12 +134,18 @@ export default function SettingsWindow() {
         setSecret: tauriApi.setSecret,
         deleteSecret: tauriApi.deleteSecret,
       });
-      setStatus(
+      const message =
         result.latencyMs != null && !/ms）/.test(result.message)
           ? `${result.message}（${result.latencyMs}ms）`
-          : result.message,
+          : result.message;
+      setStatusKind(result.ok ? "ok" : "error");
+      setStatus(
+        result.ok
+          ? message
+          : `${message}。可先运行 npm run doctor，步骤见 docs/live-freeos.md`,
       );
     } catch (error) {
+      setStatusKind("error");
       setStatus(error instanceof Error ? error.message : "测试失败");
     } finally {
       setBusy(false);
@@ -191,10 +205,11 @@ export default function SettingsWindow() {
           </label>
           <p className="settings-note">
             本机联调优先 FreeOS <code>http://127.0.0.1:8088</code>
-            （Windows 上该端口常已开放）。openXYOS :3000
-            未启动可先忽略。切换后端不会改动桌宠与对话界面。先{" "}
-            <code>npm run doctor</code> 探活；没有真实 FreeOS 时，可先跑{" "}
-            <code>npm run mock:backends</code>，再把地址改成 18088。
+            （Windows 上该端口常已开放）。顺序：<code>npm run doctor</code> →
+            本页填地址/账号 → <strong>测试连接</strong> → 打开对话。openXYOS
+            :3000 未启动可先忽略。没有真实 FreeOS 时，可先跑{" "}
+            <code>npm run mock:backends</code>，再把地址改成 18088。说明见{" "}
+            <code>docs/live-freeos.md</code>。
           </p>
           {!provider.ready ? (
             <p className="settings-note">{provider.notReadyReason}</p>
@@ -362,7 +377,16 @@ export default function SettingsWindow() {
               保存
             </button>
           </div>
-          {status ? <p className="settings-status">{status}</p> : null}
+          {status ? (
+            <p
+              className={`settings-status${
+                statusKind === "ok" ? " is-ok" : statusKind === "error" ? " is-error" : ""
+              }`}
+              data-testid="connection-status"
+            >
+              {status}
+            </p>
+          ) : null}
         </section>
       ) : null}
       {tab === "pet" ? (

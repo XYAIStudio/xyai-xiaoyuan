@@ -36,5 +36,5 @@ export function recommendLiveHint(live, mock = []) {
   if (mockOk) {
     return "真实 FreeOS :8088 未开。模拟网关已就绪时，把设置地址改成 18088 / 13000 / 11340 后点「测试连接」。";
   }
-  return `当前没有探到可用服务。联调优先启动 FreeOS（${PREFERRED_LIVE_URL}），或运行 npm run mock:backends。详见 docs/live-integration.md`;
+  return `当前没有探到可用服务。联调优先启动 FreeOS（${PREFERRED_LIVE_URL}），或运行 npm run mock:backends。详见 docs/live-freeos.md`;
 }

@@ -64,7 +64,7 @@ if (arg === "all" || arg === "help") {
   );
   for (const id of Object.keys(PRESETS)) printPreset(id);
   console.log("探活：npm run doctor");
-  console.log("说明：docs/live-integration.md");
+  console.log("说明：docs/live-freeos.md");
 } else {
   printPreset(arg);
 }

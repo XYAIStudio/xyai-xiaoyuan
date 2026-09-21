@@ -21,6 +21,7 @@ const LIVE = [
     env: "XYAI_FREEOS_URL",
     fallback: "http://127.0.0.1:8088",
     path: "/api/setup/status",
+    altPaths: ["/api/health"],
   },
   {
     id: "openxyos",
@@ -51,6 +52,7 @@ const MOCK = [
     label: "模拟 FreeOS",
     fallback: "http://127.0.0.1:18088",
     path: "/api/setup/status",
+    altPaths: ["/api/health"],
   },
   {
     id: "openxyos-mock",
@@ -176,10 +178,17 @@ function pad(text, width) {
 
 async function probeRow(row) {
   const base = originOf(process.env[row.env] || row.fallback) || row.fallback;
-  const url = joinUrl(base, row.path);
   const { host, port } = hostPortOf(base, 80);
   const tcp = await tcpProbe(host, port);
-  const result = await requestOnce(url);
+  const paths = [row.path, ...(row.altPaths || [])];
+  let result = { ok: false, status: 0, error: "未探测", ms: 0 };
+  let url = joinUrl(base, row.path);
+  for (const path of paths) {
+    const candidate = joinUrl(base, path);
+    result = await requestOnce(candidate);
+    url = candidate;
+    if (result.ok) break;
+  }
   return { ...row, base, url, host, port, ...tcp, ...result };
 }
 

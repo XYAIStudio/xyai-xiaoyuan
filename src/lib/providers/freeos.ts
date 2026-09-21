@@ -7,6 +7,14 @@ import type {
   SendChatInput,
 } from "./types";
 import { runConnectionTest } from "./connection";
+import { describeProviderError } from "./errors";
+import {
+  displayNameOf,
+  FREEOS_DEFAULT_URL,
+  FREEOS_PATHS,
+  isSetupRequired,
+  loginTokenOf,
+} from "./freeosPaths";
 import {
   apiJson,
   extractTextContent,
@@ -22,15 +30,16 @@ async function login(ctx: ProviderContext): Promise<{ access_token: string }> {
   if (!ctx.username?.trim() || !password) {
     throw new Error("请先在设置中填写 FreeOS 用户名和密码");
   }
-  const result = await apiJson<{ access_token: string }>(ctx.baseUrl, "/auth/login", {
+  const result = await apiJson<Record<string, unknown>>(ctx.baseUrl, FREEOS_PATHS.login, {
     method: "POST",
     body: JSON.stringify({ username: ctx.username.trim(), password }),
   });
-  if (!result.access_token) {
+  const access_token = loginTokenOf(result);
+  if (!access_token) {
     throw new Error("登录响应缺少 access_token");
   }
-  await ctx.setSecret(TOKEN_KEY, result.access_token);
-  return result;
+  await ctx.setSecret(TOKEN_KEY, access_token);
+  return { access_token };
 }
 
 async function withToken<T>(
@@ -50,6 +59,23 @@ async function withToken<T>(
     await ctx.deleteSecret(TOKEN_KEY);
     token = (await login(ctx)).access_token;
     return await operation(token);
+  }
+}
+
+async function apiJsonWithFallback<T>(
+  ctx: ProviderContext,
+  token: string,
+  primary: string,
+  fallback: string,
+  init: RequestInit = {},
+): Promise<T> {
+  try {
+    return await apiJson<T>(ctx.baseUrl, primary, { ...init, token });
+  } catch (error) {
+    if (error instanceof ProviderHttpError && error.status === 404) {
+      return apiJson<T>(ctx.baseUrl, fallback, { ...init, token });
+    }
+    throw error;
   }
 }
 
@@ -93,24 +119,76 @@ export const freeOsProvider: BackendProvider = {
   repoUrl: "https://github.com/XYAIStudio/FreeOS",
   ready: true,
   supportsThreads: true,
-  defaultBaseUrl: "http://127.0.0.1:8088",
+  defaultBaseUrl: FREEOS_DEFAULT_URL,
   secretKeys: [PASSWORD_KEY, TOKEN_KEY],
 
   async testConnection(ctx): Promise<ConnectionTestResult> {
     return runConnectionTest(async () => {
-      const status = await apiJson<{ setup_required?: boolean }>(
-        ctx.baseUrl,
-        "/setup/status",
-      ).catch(() => null);
-      if (status?.setup_required) {
-        return { ok: false, message: "FreeOS 尚未完成初始化（setup_required）" };
+      let version = "";
+      try {
+        const health = await apiJson<Record<string, unknown>>(ctx.baseUrl, FREEOS_PATHS.health);
+        const status = String(health.status ?? "");
+        if (status && status !== "ok") {
+          return { ok: false, message: `FreeOS 健康检查异常：${status}` };
+        }
+        version = health.version != null ? String(health.version) : "";
+      } catch (error) {
+        if (error instanceof ProviderHttpError && error.status === 404) {
+          /* older builds may omit /api/health; continue with setup/login */
+        } else {
+          throw error;
+        }
       }
-      const token = (await login(ctx)).access_token;
-      const me = await apiJson<Record<string, unknown>>(ctx.baseUrl, "/auth/me", {
+
+      const status = await apiJson<Record<string, unknown>>(
+        ctx.baseUrl,
+        FREEOS_PATHS.setupStatus,
+      ).catch((error) => {
+        if (error instanceof ProviderHttpError && error.status === 404) return null;
+        throw error;
+      });
+      if (isSetupRequired(status)) {
+        return {
+          ok: false,
+          message:
+            "FreeOS 尚未完成初始化（setup_required）。请先在浏览器打开 http://127.0.0.1:8088 走完向导，再回来测试连接",
+        };
+      }
+
+      let token: string;
+      try {
+        token = (await login(ctx)).access_token;
+      } catch (error) {
+        throw new Error(describeProviderError(error));
+      }
+      const me = await apiJson<Record<string, unknown>>(ctx.baseUrl, FREEOS_PATHS.me, {
         token,
       });
-      const name = String(me.display_name ?? me.username ?? ctx.username ?? "");
-      return { ok: true, message: name ? `已连接：${name}` : "连接成功" };
+      const name = displayNameOf(me, ctx.username ?? "");
+      const role = me.role != null ? String(me.role) : "";
+      let agentCount: number | null = null;
+      try {
+        const rows = await apiJson<Array<Record<string, unknown>>>(
+          ctx.baseUrl,
+          FREEOS_PATHS.agents,
+          { token },
+        );
+        agentCount = Array.isArray(rows) ? rows.length : null;
+      } catch {
+        /* agents optional during connection test */
+      }
+
+      const bits = [
+        name ? `已连接：${name}` : "连接成功",
+        role ? `角色 ${role}` : "",
+        agentCount != null ? `${agentCount} 个智能体` : "",
+        version ? `v${version}` : "",
+      ].filter(Boolean);
+      return {
+        ok: true,
+        message: `${bits.join(" · ")}。可打开对话窗开始聊天`,
+        detail: version || undefined,
+      };
     });
   },
 
@@ -118,7 +196,7 @@ export const freeOsProvider: BackendProvider = {
     return withToken(ctx, async (token) => {
       const rows = await apiJson<Array<Record<string, unknown>>>(
         ctx.baseUrl,
-        "/agents",
+        FREEOS_PATHS.agents,
         {
           token,
         },
@@ -129,10 +207,12 @@ export const freeOsProvider: BackendProvider = {
 
   async ensureThread(ctx, agentId) {
     return withToken(ctx, (token) =>
-      apiJson<{ thread_id: string; session_key?: string }>(
-        ctx.baseUrl,
-        `/agents/${encodeURIComponent(agentId)}/threads`,
-        { method: "POST", token },
+      apiJsonWithFallback<{ thread_id: string; session_key?: string }>(
+        ctx,
+        token,
+        FREEOS_PATHS.createThread(agentId),
+        FREEOS_PATHS.createSession(agentId),
+        { method: "POST" },
       ).then((created) => ({
         threadId: created.thread_id,
         sessionKey: created.session_key,
@@ -142,12 +222,13 @@ export const freeOsProvider: BackendProvider = {
 
   async loadHistory(ctx, agentId, threadId) {
     return withToken(ctx, async (token) => {
-      const history = await apiJson<{
+      const history = await apiJsonWithFallback<{
         messages: Array<{ role: string; content: unknown }>;
       }>(
-        ctx.baseUrl,
-        `/agents/${encodeURIComponent(agentId)}/threads/${encodeURIComponent(threadId)}/history?limit=50&offset=0`,
-        { token },
+        ctx,
+        token,
+        FREEOS_PATHS.threadHistory(agentId, threadId),
+        FREEOS_PATHS.sessionHistory(agentId, threadId),
       );
       return historyMessages(history.messages ?? []);
     });
@@ -165,7 +246,7 @@ export const freeOsProvider: BackendProvider = {
     const openTimer = window.setTimeout(() => {
       if (cancelled || finished) return;
       if (socket && socket.readyState !== WebSocket.OPEN) {
-        input.onError?.("WebSocket 连接超时，请确认 FreeOS 已启动");
+        input.onError?.("WebSocket 连接超时，请确认 FreeOS 已在 :8088 启动");
         socket.close();
       }
     }, 8_000);
@@ -216,7 +297,7 @@ export const freeOsProvider: BackendProvider = {
     };
     socket.onerror = () => {
       if (!cancelled)
-        input.onError?.("WebSocket 连接失败，请确认 FreeOS 已启动或改用模拟后端");
+        input.onError?.("WebSocket 连接失败，请确认 FreeOS 已启动（默认 :8088）或改用模拟后端");
     };
     socket.onclose = () => {
       window.clearTimeout(openTimer);

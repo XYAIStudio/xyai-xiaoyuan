@@ -1,3 +1,4 @@
+import { describeProviderError } from "./errors";
 import type { ConnectionTestResult } from "./types";
 
 export function nowMs(): number {
@@ -33,9 +34,10 @@ export function describeNetworkError(error: unknown): string {
       message,
     )
   ) {
-    return "无法连接服务。请检查地址是否可访问（本机后端需先启动，可先 npm run doctor）";
+    return "无法连接服务。请检查地址是否可访问（本机 FreeOS 默认 http://127.0.0.1:8088，可先 npm run doctor）";
   }
-  return error instanceof Error ? error.message : message;
+  const mapped = describeProviderError(error);
+  return mapped || (error instanceof Error ? error.message : message);
 }
 
 export async function runConnectionTest(

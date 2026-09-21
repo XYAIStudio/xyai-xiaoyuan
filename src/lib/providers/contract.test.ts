@@ -94,8 +94,13 @@ describe("connection test contract", () => {
     expect(timed.message).toMatch(/已连接：小元（\d+ms）/);
   });
 
-  it("FreeOS testConnection hits setup + login + me", async () => {
+  it("FreeOS testConnection hits health + setup + login + me", async () => {
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/api/health")) {
+        return new Response(JSON.stringify({ status: "ok", version: "test" }), {
+          status: 200,
+        });
+      }
       if (String(url).endsWith("/api/setup/status")) {
         return new Response(JSON.stringify({ setup_required: false }), { status: 200 });
       }
@@ -104,7 +109,14 @@ describe("connection test contract", () => {
         return new Response(JSON.stringify({ access_token: "tok" }), { status: 200 });
       }
       if (String(url).endsWith("/api/auth/me")) {
-        return new Response(JSON.stringify({ username: "xiaoyuan" }), { status: 200 });
+        return new Response(JSON.stringify({ username: "xiaoyuan", role: "admin" }), {
+          status: 200,
+        });
+      }
+      if (String(url).endsWith("/api/agents")) {
+        return new Response(JSON.stringify([{ agent_id: "main", name: "主助手" }]), {
+          status: 200,
+        });
       }
       return new Response("missing", { status: 404 });
     });
@@ -113,7 +125,30 @@ describe("connection test contract", () => {
     expect(result.ok).toBe(true);
     expect(result.latencyMs).toBeGreaterThanOrEqual(0);
     expect(result.message).toMatch(/已连接/);
+    expect(result.message).toMatch(/智能体/);
     expect(fetchMock).toHaveBeenCalled();
+  });
+
+  it("maps FreeOS AUTH_FAILED envelope to Chinese", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (String(url).endsWith("/api/health")) {
+        return new Response(JSON.stringify({ status: "ok" }), { status: 200 });
+      }
+      if (String(url).endsWith("/api/setup/status")) {
+        return new Response(JSON.stringify({ setup_required: false }), { status: 200 });
+      }
+      if (String(url).endsWith("/api/auth/login")) {
+        return new Response(
+          JSON.stringify({ error: { code: "AUTH_FAILED", message: "invalid credentials" } }),
+          { status: 401 },
+        );
+      }
+      return new Response("missing", { status: 404 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await freeOsProvider.testConnection(ctx("http://127.0.0.1:8088"));
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/用户名或密码错误/);
   });
 
   it("openXYOS testConnection hits /api/health", async () => {

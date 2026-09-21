@@ -121,6 +121,29 @@ describe("SettingsWindow", () => {
       "本机 Grok Bot",
     ]);
     expect(screen.getByText(/本机联调优先 FreeOS/)).toBeInTheDocument();
+    expect(screen.getByText(/docs\/live-freeos\.md/)).toBeInTheDocument();
+  });
+
+  it("shows Chinese connection result after 测试连接", async () => {
+    const { tauriApi } = await import("./tauriApi");
+    const { freeOsProvider } = await import("./providers/freeos");
+    vi.mocked(tauriApi.getSecret).mockResolvedValue("xiaoyuan");
+    const spy = vi.spyOn(freeOsProvider, "testConnection").mockResolvedValue({
+      ok: true,
+      message: "已连接：小元 · 1 个智能体",
+      latencyMs: 12,
+    });
+    render(<SettingsWindow />);
+    fireEvent.change(await screen.findByLabelText("用户名"), {
+      target: { value: "xiaoyuan" },
+    });
+    fireEvent.change(screen.getByLabelText("密码（钥匙串）"), {
+      target: { value: "xiaoyuan" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "测试连接" }));
+    expect(await screen.findByTestId("connection-status")).toHaveTextContent(/已连接：小元/);
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
   });
 
   it("exposes pose auto-switch and lock controls on the pet tab", async () => {
