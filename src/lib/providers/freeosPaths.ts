@@ -27,7 +27,9 @@ export const FREEOS_PATHS = {
     `/agents/${encodeURIComponent(agentId)}/chat/sessions/${encodeURIComponent(threadId)}/history?limit=50&offset=0`,
 } as const;
 
-export function isSetupRequired(status: Record<string, unknown> | null | undefined): boolean {
+export function isSetupRequired(
+  status: Record<string, unknown> | null | undefined,
+): boolean {
   if (!status) return false;
   if (status.setup_required === true || status.required === true) return true;
   if (status.completed === false && status.has_admin === false) return true;

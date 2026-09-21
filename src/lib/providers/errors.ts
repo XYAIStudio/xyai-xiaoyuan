@@ -2,7 +2,8 @@ const OCTOP_ZH: Record<string, string> = {
   AUTH_FAILED: "用户名或密码错误。请核对 FreeOS 账户后重试",
   ACCOUNT_REQUIRED: "需要先创建账户。请在浏览器打开 FreeOS 完成初始化向导",
   TOKEN_EXPIRED: "登录已过期，请再点一次「测试连接」",
-  SETUP_REQUIRED: "FreeOS 尚未完成初始化。请先在浏览器打开 http://127.0.0.1:8088 走完向导",
+  SETUP_REQUIRED:
+    "FreeOS 尚未完成初始化。请先在浏览器打开 http://127.0.0.1:8088 走完向导",
   FORBIDDEN: "没有权限访问该接口",
   NOT_FOUND: "接口不存在。请确认地址是 FreeOS（默认 http://127.0.0.1:8088）且版本匹配",
   USER_DISABLED: "该账户已禁用",
@@ -76,7 +77,11 @@ function messageFromBody(body: string | undefined): string | null {
       message?: unknown;
       error?: { message?: unknown } | string;
     };
-    if (data?.error && typeof data.error === "object" && typeof data.error.message === "string") {
+    if (
+      data?.error &&
+      typeof data.error === "object" &&
+      typeof data.error.message === "string"
+    ) {
       return data.error.message.trim() || null;
     }
     if (typeof data.detail === "string") return data.detail.trim() || null;

@@ -141,7 +141,9 @@ describe("SettingsWindow", () => {
       target: { value: "xiaoyuan" },
     });
     fireEvent.click(screen.getByRole("button", { name: "测试连接" }));
-    expect(await screen.findByTestId("connection-status")).toHaveTextContent(/已连接：小元/);
+    expect(await screen.findByTestId("connection-status")).toHaveTextContent(
+      /已连接：小元/,
+    );
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });

@@ -30,6 +30,7 @@ function ctx(baseUrl: string): ProviderContext {
 describe("live endpoint contract", () => {
   it("keeps default ports aligned with docs and mock offsets", () => {
     expect(LIVE_DEFAULTS.freeos.port).toBe(8088);
+    expect(LIVE_DEFAULTS.freeos.healthPath).toBe("/api/health");
     expect(LIVE_DEFAULTS.openxyos.port).toBe(3000);
     expect(LIVE_DEFAULTS.grokbot.port).toBe(1340);
     expect(MOCK_DEFAULTS.freeos.port).toBe(18088);
@@ -139,7 +140,9 @@ describe("connection test contract", () => {
       }
       if (String(url).endsWith("/api/auth/login")) {
         return new Response(
-          JSON.stringify({ error: { code: "AUTH_FAILED", message: "invalid credentials" } }),
+          JSON.stringify({
+            error: { code: "AUTH_FAILED", message: "invalid credentials" },
+          }),
           { status: 401 },
         );
       }

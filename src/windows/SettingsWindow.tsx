@@ -122,9 +122,11 @@ export default function SettingsWindow() {
             : cfg.providerId === "xyai-studio"
               ? cfg.xyaiStudio.baseUrl
               : cfg.freeos.baseUrl;
-      if (cfg.providerId === "freeos" && !cfg.freeos.username.trim() && !password) {
+      if (cfg.providerId === "freeos" && !cfg.freeos.username.trim()) {
         setStatusKind("error");
-        setStatus("请先填写 FreeOS 用户名和密码，再点测试连接（本机默认 http://127.0.0.1:8088）");
+        setStatus(
+          "请先填写 FreeOS 用户名（密码在钥匙串）。本机默认 http://127.0.0.1:8088",
+        );
         return;
       }
       const result = await provider.testConnection({
@@ -206,8 +208,8 @@ export default function SettingsWindow() {
           <p className="settings-note">
             本机联调优先 FreeOS <code>http://127.0.0.1:8088</code>
             （Windows 上该端口常已开放）。顺序：<code>npm run doctor</code> →
-            本页填地址/账号 → <strong>测试连接</strong> → 打开对话。openXYOS
-            :3000 未启动可先忽略。没有真实 FreeOS 时，可先跑{" "}
+            本页填地址/账号 → <strong>测试连接</strong> → 打开对话。openXYOS :3000
+            未启动可先忽略。没有真实 FreeOS 时，可先跑{" "}
             <code>npm run mock:backends</code>，再把地址改成 18088。说明见{" "}
             <code>docs/live-freeos.md</code>。
           </p>
@@ -380,7 +382,11 @@ export default function SettingsWindow() {
           {status ? (
             <p
               className={`settings-status${
-                statusKind === "ok" ? " is-ok" : statusKind === "error" ? " is-error" : ""
+                statusKind === "ok"
+                  ? " is-ok"
+                  : statusKind === "error"
+                    ? " is-error"
+                    : ""
               }`}
               data-testid="connection-status"
             >

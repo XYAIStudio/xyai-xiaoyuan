@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { listenFreeOsMock } from "../../../scripts/lib/freeos-mock.mjs";
 import { describeNetworkError } from "./connection";
 import { describeOctopCode, describeProviderError } from "./errors";
 import { freeOsProvider } from "./freeos";
@@ -8,7 +7,20 @@ import { FREEOS_DEFAULT_PORT, FREEOS_PATHS, isSetupRequired } from "./freeosPath
 import { ProviderHttpError } from "./http";
 import type { ProviderContext } from "./types";
 
-type MockHandle = Awaited<ReturnType<typeof listenFreeOsMock>>;
+type MockHandle = {
+  server: { close: (cb?: (error?: Error) => void) => void };
+  port: number;
+  url: string;
+};
+
+async function startMock(
+  options: { setupRequired?: boolean } = {},
+): Promise<MockHandle> {
+  // Mock lives next to mock-backends; keep it out of the TS program.
+  // @ts-expect-error -- scripts/lib/freeos-mock.mjs is untyped Node ESM
+  const { listenFreeOsMock } = await import("../../../scripts/lib/freeos-mock.mjs");
+  return listenFreeOsMock(0, "127.0.0.1", options) as Promise<MockHandle>;
+}
 
 function ctx(baseUrl: string, password = "xiaoyuan"): ProviderContext {
   const secrets = new Map<string, string>([["freeos_password", password]]);
@@ -30,10 +42,11 @@ describe("FreeOS :8088 contract (mock)", () => {
 
   afterEach(async () => {
     if (!handle) return;
-    await new Promise<void>((resolve, reject) => {
-      handle?.server.close((error) => (error ? reject(error) : resolve()));
-    });
+    const current = handle;
     handle = null;
+    await new Promise<void>((resolve, reject) => {
+      current.server.close((error?: Error) => (error ? reject(error) : resolve()));
+    });
   });
 
   it("keeps live paths aligned with FreeOS routers", () => {
@@ -51,7 +64,9 @@ describe("FreeOS :8088 contract (mock)", () => {
       describeProviderError(
         new ProviderHttpError(
           401,
-          JSON.stringify({ error: { code: "AUTH_FAILED", message: "invalid credentials" } }),
+          JSON.stringify({
+            error: { code: "AUTH_FAILED", message: "invalid credentials" },
+          }),
         ),
       ),
     ).toMatch(/用户名或密码错误/);
@@ -59,7 +74,7 @@ describe("FreeOS :8088 contract (mock)", () => {
   });
 
   it("testConnection + agents + threads against the :8088 mock", async () => {
-    handle = await listenFreeOsMock(0);
+    handle = await startMock();
     const providerCtx = ctx(handle.url);
     const result = await freeOsProvider.testConnection(providerCtx);
     expect(result.ok).toBe(true);
@@ -82,14 +97,14 @@ describe("FreeOS :8088 contract (mock)", () => {
   });
 
   it("rejects wrong password with Chinese AUTH_FAILED", async () => {
-    handle = await listenFreeOsMock(0);
+    handle = await startMock();
     const result = await freeOsProvider.testConnection(ctx(handle.url, "wrong"));
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/用户名或密码错误/);
   });
 
   it("surfaces setup_required before login", async () => {
-    handle = await listenFreeOsMock(0, "127.0.0.1", { setupRequired: true });
+    handle = await startMock({ setupRequired: true });
     const result = await freeOsProvider.testConnection(ctx(handle.url));
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/尚未完成初始化/);

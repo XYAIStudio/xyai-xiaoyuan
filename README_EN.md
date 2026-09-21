@@ -86,7 +86,7 @@ Configure them in **Settings → Backend**. Secrets go to the OS keychain (dev b
 
 | Backend                 | Repository                                                          | Default                 | Status        | Public APIs used                                                                                                                                                                                                                          |
 | ----------------------- | ------------------------------------------------------------------- | ----------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **FreeOS / XYAI**       | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS)           | `http://127.0.0.1:8088` | Ready         | `GET /api/health` · `GET /api/setup/status` · `POST /api/auth/login` · `GET /api/auth/me` · `GET /api/agents` · `POST /api/agents/{id}/threads` · history · WebSocket `/api/agents/{id}/chat/ws?token=`                                    |
+| **FreeOS / XYAI**       | [XYAIStudio/FreeOS](https://github.com/XYAIStudio/FreeOS)           | `http://127.0.0.1:8088` | Ready         | `GET /api/health` · `GET /api/setup/status` · `POST /api/auth/login` · `GET /api/auth/me` · `GET /api/agents` · `POST /api/agents/{id}/threads` · history · WebSocket `/api/agents/{id}/chat/ws?token=`                                   |
 | **openXYOS**            | [XYAIStudio/openXYOS](https://github.com/XYAIStudio/openXYOS)       | `http://127.0.0.1:3000` | Ready         | `GET /api/health` · email login · chats / messages · `POST /api/assistant/chat` (Xiaoxiong)                                                                                                                                               |
 | **XYAI Studio desktop** | [XYAIStudio/xyai-studio](https://github.com/XYAIStudio/xyai-studio) | (no remote chat API)    | **Not ready** | Local-first Electron workbench. No listAgents / chat HTTP API for the pet. Existing interop is Studio → openXYOS (`POST /api/xyai/agents/import`, header `X-XYAI-Interop: studio`). Registered; connection test explains it is not ready. |
 | **Local Grok Bot**      | Local gateway (extra provider)                                      | `http://127.0.0.1:1340` | Ready         | `GET /health` · `POST /api/listAgents` · `POST /api/sendPrompt`. Import `{port,scheme,host,token}` from `sand-data/gateway.json`. **Local / tunnel only; paths may change.**                                                              |
@@ -142,17 +142,17 @@ Add another backend by implementing `BackendProvider` and registering it; do not
 
 Chinese-first index: [docs/README.md](docs/README.md)
 
-| Doc                                            | Topic                          |
-| ---------------------------------------------- | ------------------------------ |
-| [Getting started](docs/getting-started.md)     | Install and run                |
+| Doc                                            | Topic                           |
+| ---------------------------------------------- | ------------------------------- |
+| [Getting started](docs/getting-started.md)     | Install and run                 |
 | [FreeOS live](docs/live-freeos.md)             | doctor → settings → test → chat |
-| [Backends](docs/backends.md)                   | Four providers + mock gateways |
-| [Poses](docs/poses.md)                         | 16 official poses              |
-| [Activity & sound](docs/activity-and-sound.md) | Idle sensing, sfx, privacy     |
-| [Gallery](docs/gallery.md)                     | GIF + stills                   |
-| [Windows packaging](docs/packaging-windows.md) | NSIS CI and updater keys       |
-| [Architecture](docs/architecture.md)           | `BackendProvider` plugin model |
-| [Contributing](docs/contributing.md)           | `make check` and PR norms      |
+| [Backends](docs/backends.md)                   | Four providers + mock gateways  |
+| [Poses](docs/poses.md)                         | 16 official poses               |
+| [Activity & sound](docs/activity-and-sound.md) | Idle sensing, sfx, privacy      |
+| [Gallery](docs/gallery.md)                     | GIF + stills                    |
+| [Windows packaging](docs/packaging-windows.md) | NSIS CI and updater keys        |
+| [Architecture](docs/architecture.md)           | `BackendProvider` plugin model  |
+| [Contributing](docs/contributing.md)           | `make check` and PR norms       |
 
 - Wiki: <https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
 - Discussions: <https://github.com/XYAIStudio/xyai-xiaoyuan/discussions>

@@ -31,7 +31,11 @@ export function parseApiErrorCode(body: string): string | null {
   if (!trimmed) return null;
   try {
     const data = asErrorEnvelope(JSON.parse(trimmed) as unknown);
-    if (data?.error && typeof data.error === "object" && typeof data.error.code === "string") {
+    if (
+      data?.error &&
+      typeof data.error === "object" &&
+      typeof data.error.code === "string"
+    ) {
       return data.error.code.trim() || null;
     }
   } catch {

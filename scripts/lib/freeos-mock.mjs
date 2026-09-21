@@ -119,7 +119,11 @@ export async function handleFreeOsHttp(req, res, options = {}) {
   }
   if (req.method === "GET" && path === "/api/auth/me") {
     if (!requireToken(req, res)) return true;
-    json(res, 200, { username: FREEOS_MOCK_USER, display_name: "模拟小元", role: "admin" });
+    json(res, 200, {
+      username: FREEOS_MOCK_USER,
+      display_name: "模拟小元",
+      role: "admin",
+    });
     return true;
   }
   if (req.method === "GET" && path === "/api/agents") {
@@ -129,7 +133,10 @@ export async function handleFreeOsHttp(req, res, options = {}) {
     ]);
     return true;
   }
-  if (req.method === "POST" && /\/api\/agents\/[^/]+\/(threads|chat\/sessions)$/.test(path)) {
+  if (
+    req.method === "POST" &&
+    /\/api\/agents\/[^/]+\/(threads|chat\/sessions)$/.test(path)
+  ) {
     if (!requireToken(req, res)) return true;
     json(res, 201, { thread_id: "thread-mock", session_key: "session-mock" });
     return true;

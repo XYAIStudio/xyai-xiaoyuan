@@ -22,11 +22,11 @@ make doctor
 
 期望：
 
-| doctor 文案     | 含义                                       |
-| --------------- | ------------------------------------------ |
-| 端口开放        | TCP 已通，先保持 FreeOS，不要改去 :3000    |
-| HTTP 就绪       | `/api/setup/status` 或 `/api/health` 有应答 |
-| 端口未开        | FreeOS 没起来；或改用 `npm run mock:backends` |
+| doctor 文案 | 含义                                          |
+| ----------- | --------------------------------------------- |
+| 端口开放    | TCP 已通，先保持 FreeOS，不要改去 :3000       |
+| HTTP 就绪   | `/api/setup/status` 或 `/api/health` 有应答   |
+| 端口未开    | FreeOS 没起来；或改用 `npm run mock:backends` |
 
 `:3000` 未开可忽略。
 
@@ -50,13 +50,13 @@ make doctor
 
 失败时文案是中文，常见含义：
 
-| 文案                 | 你要做什么                                           |
-| -------------------- | ---------------------------------------------------- |
-| 端口无人监听 / 无法连接 | 先起 FreeOS，或 `npm run doctor`                     |
-| 尚未完成初始化       | 浏览器打开 `http://127.0.0.1:8088` 走完向导          |
-| 用户名或密码错误     | 核对 FreeOS 账户（登录可用用户名或邮箱）             |
-| 登录被锁定           | 试太多次；稍等或在 FreeOS 解锁                       |
-| 接口不存在           | 确认地址是 :8088，不要填 openXYOS :3000              |
+| 文案                    | 你要做什么                                  |
+| ----------------------- | ------------------------------------------- |
+| 端口无人监听 / 无法连接 | 先起 FreeOS，或 `npm run doctor`            |
+| 尚未完成初始化          | 浏览器打开 `http://127.0.0.1:8088` 走完向导 |
+| 用户名或密码错误        | 核对 FreeOS 账户（登录可用用户名或邮箱）    |
+| 登录被锁定              | 试太多次；稍等或在 FreeOS 解锁              |
+| 接口不存在              | 确认地址是 :8088，不要填 openXYOS :3000     |
 
 ### 4. 聊天
 
@@ -68,15 +68,15 @@ make doctor
 
 对照 FreeOS 仓库 **实际路由器**（`src/octop/api/routers/`），不是臆造：
 
-| 用途     | 路径                                              |
-| -------- | ------------------------------------------------- |
-| 探活     | `GET /api/health`、`GET /api/setup/status`        |
+| 用途     | 路径                                                            |
+| -------- | --------------------------------------------------------------- |
+| 探活     | `GET /api/health`、`GET /api/setup/status`                      |
 | 登录     | `POST /api/auth/login` `{username,password}` → `{access_token}` |
-| 当前用户 | `GET /api/auth/me`                                |
-| 智能体   | `GET /api/agents`                                 |
-| 会话     | `POST /api/agents/{id}/threads`（主路径）         |
-| 历史     | `GET /api/agents/{id}/threads/{id}/history`       |
-| 对话     | WebSocket `/api/agents/{id}/chat/ws?token=`       |
+| 当前用户 | `GET /api/auth/me`                                              |
+| 智能体   | `GET /api/agents`                                               |
+| 会话     | `POST /api/agents/{id}/threads`（主路径）                       |
+| 历史     | `GET /api/agents/{id}/threads/{id}/history`                     |
+| 对话     | WebSocket `/api/agents/{id}/chat/ws?token=`                     |
 
 `docs/api.md` 里还有 `/chat/sessions` 表。小元只在主路径 **404** 时回退到该别名，避免文档/代码不一致时联调中断。
 

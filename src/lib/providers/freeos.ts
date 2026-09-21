@@ -30,10 +30,14 @@ async function login(ctx: ProviderContext): Promise<{ access_token: string }> {
   if (!ctx.username?.trim() || !password) {
     throw new Error("请先在设置中填写 FreeOS 用户名和密码");
   }
-  const result = await apiJson<Record<string, unknown>>(ctx.baseUrl, FREEOS_PATHS.login, {
-    method: "POST",
-    body: JSON.stringify({ username: ctx.username.trim(), password }),
-  });
+  const result = await apiJson<Record<string, unknown>>(
+    ctx.baseUrl,
+    FREEOS_PATHS.login,
+    {
+      method: "POST",
+      body: JSON.stringify({ username: ctx.username.trim(), password }),
+    },
+  );
   const access_token = loginTokenOf(result);
   if (!access_token) {
     throw new Error("登录响应缺少 access_token");
@@ -126,7 +130,10 @@ export const freeOsProvider: BackendProvider = {
     return runConnectionTest(async () => {
       let version = "";
       try {
-        const health = await apiJson<Record<string, unknown>>(ctx.baseUrl, FREEOS_PATHS.health);
+        const health = await apiJson<Record<string, unknown>>(
+          ctx.baseUrl,
+          FREEOS_PATHS.health,
+        );
         const status = String(health.status ?? "");
         if (status && status !== "ok") {
           return { ok: false, message: `FreeOS 健康检查异常：${status}` };
@@ -297,7 +304,9 @@ export const freeOsProvider: BackendProvider = {
     };
     socket.onerror = () => {
       if (!cancelled)
-        input.onError?.("WebSocket 连接失败，请确认 FreeOS 已启动（默认 :8088）或改用模拟后端");
+        input.onError?.(
+          "WebSocket 连接失败，请确认 FreeOS 已启动（默认 :8088）或改用模拟后端",
+        );
     };
     socket.onclose = () => {
       window.clearTimeout(openTimer);
