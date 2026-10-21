@@ -32,7 +32,7 @@ make install-hooks
 - 后端接口必须来自目标仓库的公开路由，禁止臆造。
 - XYAI Studio 在远程对话 API 出现之前保持 **未就绪**，不要假装能聊。
 - Windows 安装包以 NSIS 为准，不要在 CI 里重新打开 MSI/WiX，除非先解决 ASCII 文件名并在 `windows-latest` 上验证。见 [Windows 安装包](packaging-windows.md)。
-- 文档改动放在 `docs/`，并在 [docs/README.md](README.md) / 根 README 留链接。Wiki 同步稿放 `docs/wiki-seed/`。
+- 文档改动放在 `docs/`，并在 [docs/README.md](README.md) / 根 README 留链接。Wiki 草稿放 `docs/wiki-seed/`，以 `docs/` 正文为准。
 
 ## 形象与命名
 

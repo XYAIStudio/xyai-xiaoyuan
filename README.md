@@ -7,7 +7,7 @@
   </p>
   <p>
     <a href="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/ci.yml"><img src="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-    <a href="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml"><img src="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml/badge.svg" alt="Windows installers" /></a>
+    <a href="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml"><img src="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml/badge.svg" alt="Windows NSIS CI（未发布）" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT" /></a>
     <img src="https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white" alt="Tauri 2" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19" />
@@ -59,18 +59,18 @@
 
 ## 亮点 Highlights
 
-| 能力           | 说明                                                            |
-| -------------- | --------------------------------------------------------------- |
-| 透明置顶桌宠   | 无边框、始终置顶、可拖动；单击轮换姿态，双击打开对话            |
-| 紧凑对话窗     | Markdown 渲染、流式输出、按当前后端列出智能体、番茄钟与快捷筹码 |
-| 系统托盘       | 打开小元 / 对话 / 番茄钟 / 拍一拍 / 设置 / 检查更新             |
-| 16 官方造型    | 对话生命周期、活动感知、本地时钟、番茄钟共同驱动；可锁定姿态    |
-| 陪伴桌面       | 拍一拍 / 喂食 / 晚安、心情能量条、桌宠旁短气泡（不刷系统通知）  |
-| 声音包         | 总开关默认关；仓库自制循环与拍一拍/喂食等音效                   |
-| 屏幕理解       | 默认关；可选本机窗口标题 / 截屏启发式，**永不上传截图**         |
-| 可插拔后端     | `BackendProvider` 对接 XYAIStudio 独立产品，并支持本机 Grok Bot |
-| Windows 安装包 | GitHub Actions 打 NSIS `setup.exe`；签名密钥可选                |
-| 自动更新       | 设置 / 托盘检查更新，源为 GitHub Releases `latest.json`         |
+| 能力           | 说明                                                             |
+| -------------- | ---------------------------------------------------------------- |
+| 透明置顶桌宠   | 无边框、始终置顶、可拖动；单击轮换姿态，双击打开对话             |
+| 紧凑对话窗     | Markdown 渲染、流式输出、按当前后端列出智能体、番茄钟与快捷筹码  |
+| 系统托盘       | 打开小元 / 对话 / 番茄钟 / 拍一拍 / 设置；「检查更新」尚无发布源 |
+| 16 官方造型    | 对话生命周期、活动感知、本地时钟、番茄钟共同驱动；可锁定姿态     |
+| 陪伴桌面       | 拍一拍 / 喂食 / 晚安、心情能量条、桌宠旁短气泡（不刷系统通知）   |
+| 声音包         | 总开关默认关；仓库自制循环与拍一拍/喂食等音效                    |
+| 屏幕理解       | 默认关；可选本机窗口标题 / 截屏启发式，**永不上传截图**          |
+| 可插拔后端     | `BackendProvider` 对接 XYAIStudio 独立产品，并支持本机 Grok Bot  |
+| Windows 安装包 | 尚无公开下载。CI 可打未发布的 Windows NSIS；Releases 还没发布    |
+| 自动更新       | 尚未开通。更新清单 `latest.json` 目前 404                        |
 
 ## 概览 Overview
 
@@ -181,36 +181,21 @@ npm run mock:backends
 
 流式输出或拖动桌宠时暂停待机轮换。右键或设置点选姿态会保持到下一次自动状态变化；勾选 **锁定姿态** 则完全冻结，直到取消锁定。设置中也可关闭自动表情。活动感知、番茄钟与本地时钟叠在同一套状态机上，但不会压过对话流式或锁定。常量与状态机见 [docs/poses.md](docs/poses.md)，隐私边界见 [docs/activity-and-sound.md](docs/activity-and-sound.md)。
 
-### Windows 安装包
+### 安装包（尚未公开发布）
 
-本仓库 Windows 安装包以 **NSIS**（`setup.exe`）为准。Linux 云主机不能签出 Windows 安装包，请走 GitHub Actions：
+访客**现在没有安装包可下**。
 
-- PR / `cursor/**` 分支 / `main`：工作流 **Windows installers**（`.github/workflows/windows.yml`）在 `windows-latest` 只打 NSIS。产物 Artifacts 名 `xyai-xiaoyuan-windows-x64-nsis`。安装包文件名用 ASCII `XYAI Xiaoyuan`（`tauri.windows.conf.json`），应用内窗口标题仍是中文。
-- 本机若已是 Windows：`npx tauri build --bundles nsis`
-- 图标来自小元官方画（`src-tauri/icons/`，`assets/mascot/icon-source.png`）
-- MSI / WiX 未进 CI：需要 MSI 时请在本机 Windows 上用 ASCII productName 自行 `npx tauri build --bundles msi`
+- [Releases](https://github.com/XYAIStudio/xyai-xiaoyuan/releases) 还没有任何发布。
+- 自动更新清单 `https://github.com/XYAIStudio/xyai-xiaoyuan/releases/latest/download/latest.json` 返回 404。
+- 工作流 **Windows installers**（`.github/workflows/windows.yml`）可以在 `windows-latest` 打出未发布的 NSIS `setup.exe`，Artifact 名 `xyai-xiaoyuan-windows-x64-nsis`。未登录打开 Artifact 会 404，不能当成下载入口。
+- 这条 CI **只打 Windows NSIS**（不打 MSI）。安装包文件名用 ASCII `XYAI Xiaoyuan`（`tauri.windows.conf.json`），窗口标题仍是中文。`Release` 工作流里另有 Linux / macOS 目标，但同样没有已发布的 Release。
+- 试用请按上面的快速开始从源码运行。本机已是 Windows 时，维护者可以 `npx tauri build --bundles nsis`。
 
-下载步骤见 [docs/packaging-windows.md](docs/packaging-windows.md)。生成密钥与 GitHub Secrets 见 [docs/signing.md](docs/signing.md)。没有签名密钥时 CI 仍打未签名 NSIS。
+以后若发布**未签名**的 Windows 安装包，SmartScreen 会提示未知发布者，直到配置 Authenticode。密钥与发布清单见 [docs/signing.md](docs/signing.md)，打包细节见 [docs/packaging-windows.md](docs/packaging-windows.md)。没有 updater 密钥时 CI 仍可打未签名 NSIS，但不会上传 `latest.json`。
 
 ### 自动更新
 
-桌面端 **设置 → 关于 → 检查更新**，托盘也有同名项。更新源：
-
-`https://github.com/XYAIStudio/xyai-xiaoyuan/releases/latest/download/latest.json`
-
-公开发布前请**自己生成**密钥（仓库里的 pubkey 仅作脚手架，私钥不会进 Git）：
-
-```bash
-bash scripts/generate-tauri-signer.sh
-# 或
-npx tauri signer generate -w ~/.tauri/xyai-xiaoyuan.key
-```
-
-1. 把 `xyai-xiaoyuan.key.pub` 的内容贴进 `src-tauri/tauri.conf.json` 的 `plugins.updater.pubkey`（在首次给用户安装之前完成）。
-2. GitHub → Settings → Secrets 添加 `TAURI_SIGNING_PRIVATE_KEY`（私钥文件全文），可选 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`。
-3. 打 tag（`v0.1.1`）或手动跑 **Release** 工作流；`tauri-action` 会写 draft Release 并上传 `latest.json`。
-
-没有密钥时检查更新会提示尚未配置，不影响日常聊天。
+**设置 → 关于 → 检查更新** 和托盘同名项都在，但更新通道还没开通：上面的 `latest.json` 不存在。没有密钥时客户端会提示尚未配置，不影响聊天。第一次给用户安装之前，维护者需要自己生成密钥，并发布带清单的 Release；仓库里的公钥只是脚手架，私钥不进 Git。
 
 ## 开发 Development
 
@@ -249,13 +234,13 @@ make check
 | [本机联调](docs/live-integration.md)         | `npm run doctor`、真实后端与 `.env.example`           |
 | [FreeOS 联调](docs/live-freeos.md)           | doctor → 设置 → 测试连接 → 聊天（:8088）              |
 | [形象画廊](docs/gallery.md)                  | 动态 GIF + 16 静态造型预览                            |
-| [Windows 安装包](docs/packaging-windows.md)  | NSIS CI、Artifacts、`latest.json`                     |
+| [Windows 安装包](docs/packaging-windows.md)  | 未发布的 Windows NSIS；尚无公开下载与 `latest.json`   |
 | [签名与更新](docs/signing.md)                | updater 私钥、可选 Authenticode                       |
 | [架构](docs/architecture.md)                 | `BackendProvider`，如何加新的 XYAIStudio 后端         |
 | [贡献指南](docs/contributing.md)             | `make check`、PR 约定                                 |
 | [English](README_EN.md)                      | English landing page                                  |
 
-Wiki 同步稿在 [`docs/wiki-seed/`](docs/wiki-seed/)，与 GitHub Wiki 对应：
+[`docs/wiki-seed/`](docs/wiki-seed/) 是 Wiki 草稿，方便以后粘贴。正文以仓库 `docs/` 为准，不保证 GitHub Wiki 与草稿逐页一致：
 
 - Wiki 首页：<https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
 - [快速开始](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/快速开始) / [Quick Start](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Quick-Start)

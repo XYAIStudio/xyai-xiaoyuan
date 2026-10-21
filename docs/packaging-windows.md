@@ -1,6 +1,8 @@
 # Windows 安装包
 
-本仓库 Windows 安装包以 **NSIS**（`setup.exe`）为准。Linux 云主机不能签出 Windows 包，请走 GitHub Actions。
+**现状：没有公开下载。** [GitHub Releases](https://github.com/XYAIStudio/xyai-xiaoyuan/releases) 还没有任何发布。自动更新清单 `https://github.com/XYAIStudio/xyai-xiaoyuan/releases/latest/download/latest.json` 返回 404。下面写的是维护者如何打出**未发布**的 Windows NSIS，不是给访客的下载入口。
+
+本仓库若打包 Windows，以 **NSIS**（`setup.exe`）为准。常规 CI 只打这一份 Windows 包。Linux 云主机不能签出 Windows 包。
 
 应用内窗口标题仍是「XYAI精灵小元」。安装包文件名使用 ASCII 产品名 **XYAI Xiaoyuan**（`src-tauri/tauri.windows.conf.json`），避免 WiX/NSIS 路径编码问题。
 
@@ -31,16 +33,18 @@ npx tauri build --bundles nsis
 
 图标来自小元官方画：`src-tauri/icons/`，源图 `assets/mascot/icon-source.png`。NSIS 语言：简体中文 + English。
 
-## 如何下载 Actions 产物
+## 没有公开下载
 
-1. 打开 <https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml>
-2. 点进最新一次 **成功** 的 **Windows installers** 运行
-3. 页面底部 **Artifacts** 下载 `xyai-xiaoyuan-windows-x64-nsis`
-4. 解压后是 NSIS `setup.exe`（文件名形如 `XYAI Xiaoyuan_0.1.0_x64-setup.exe`）
+不要把 Actions Artifact 当成安装包下载页。
 
-GitHub Artifact 默认保留约 90 天，需要长期分发请走 GitHub Releases（见 [signing.md](signing.md)）。
+- Releases 目前为空，页面上没有 `setup.exe`。
+- `latest.json` 返回 404，桌面端「检查更新」因此没有可用的更新源。
+- 成功的 **Windows installers** 运行会上传 Artifact `xyai-xiaoyuan-windows-x64-nsis`（解压后文件名形如 `XYAI Xiaoyuan_0.1.0_x64-setup.exe`）。未登录打开 Artifact 链接会 404（接口返回 401）。这不是公开分发渠道，默认大约 90 天后过期。
+- 这条 CI **只打 Windows NSIS**。Linux（AppImage / deb）和 macOS（app / dmg）只写在尚未发布过的 Release 工作流里，同样没有公开包。
 
-也可在 PR 页面的 Checks 里点进同名工作流。
+想试用请克隆仓库后 `npm run tauri dev`。本机 Windows 的打包命令见上一节。
+
+以后若把**未签名**的 NSIS 放到 Release 上，安装时 Windows SmartScreen 会提示未知发布者，直到配置 Authenticode（见 [signing.md](signing.md)）。
 
 ## 为何 CI 不打 MSI / WiX
 
@@ -64,7 +68,9 @@ npx tauri build --bundles msi
 
 ## 自动更新与 `latest.json`
 
-桌面端 **设置 → 关于 → 检查更新**，托盘也有同名项。更新源：
+更新通道**尚未开通**。下面的地址是将来发布后的约定，现在返回 404。
+
+桌面端 **设置 → 关于 → 检查更新**，托盘也有同名项。预定更新源：
 
 ```text
 https://github.com/XYAIStudio/xyai-xiaoyuan/releases/latest/download/latest.json

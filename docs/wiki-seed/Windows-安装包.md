@@ -2,7 +2,9 @@
 
 **English:** [[Packaging]] · 仓库文档：[docs/packaging-windows.md](https://github.com/XYAIStudio/xyai-xiaoyuan/blob/main/docs/packaging-windows.md)
 
-本仓库 Windows 安装包以 **NSIS**（`setup.exe`）为准。Linux 云主机不能签出 Windows 包，请走 GitHub Actions。
+**没有公开下载。** GitHub Releases 为空，`latest.json` 返回 404。CI 可以打出未发布的 Windows NSIS，未登录打不开 Artifact。
+
+本仓库若打包 Windows，以 **NSIS**（`setup.exe`）为准。常规 CI 只打这一份。Linux 云主机不能签出 Windows 包。
 
 应用内窗口标题仍是「XYAI精灵小元」。安装包文件名使用 ASCII 产品名 **XYAI Xiaoyuan**（`src-tauri/tauri.windows.conf.json`），避免路径编码问题。
 
@@ -17,7 +19,7 @@
 - 未配置 `TAURI_SIGNING_PRIVATE_KEY` 时仍产出未签名 NSIS
 - Artifact 名：`xyai-xiaoyuan-windows-x64-nsis`
 
-下载：打开最新一次**成功**运行 → Artifacts → `xyai-xiaoyuan-windows-x64-nsis` → `XYAI Xiaoyuan_0.1.0_x64-setup.exe`。
+这不是下载入口。成功运行会上传 Artifact `xyai-xiaoyuan-windows-x64-nsis`（文件名形如 `XYAI Xiaoyuan_0.1.0_x64-setup.exe`），未登录打开会 404。试用请克隆后 `npm run tauri dev`。以后若发布未签名安装包，SmartScreen 会提示未知发布者。
 
 ## 为何 CI 不打 MSI
 
@@ -31,7 +33,7 @@ npx tauri build --bundles msi
 
 ## 自动更新
 
-**设置 → 关于 → 检查更新**（托盘也有）读取：
+更新通道尚未开通。**设置 → 关于 → 检查更新**（托盘也有）预定读取：
 
 ```text
 https://github.com/XYAIStudio/xyai-xiaoyuan/releases/latest/download/latest.json

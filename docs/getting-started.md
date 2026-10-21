@@ -16,7 +16,7 @@ npm run tauri dev
 启动后会出现：
 
 - 透明置顶桌宠（小元）
-- 系统托盘：打开小元 / 对话 / 设置 / 检查更新
+- 系统托盘：打开小元 / 对话 / 设置；菜单里的「检查更新」还没有发布源
 - 单击桌宠轮换俏皮姿态，双击打开对话；右键菜单含 16 表情、拍一拍 / 喂食 / 晚安、锁定姿态
 
 默认全局快捷键：
@@ -89,5 +89,5 @@ hook 实际执行 `make all`（含自动 format）。临时跳过：`SKIP_PRECOM
 
 - 对接真实产品：[后端对接](backends.md)
 - 了解桌宠表情：[姿态与动画](poses.md)
-- 打 Windows 安装包：[Windows 安装包](packaging-windows.md)
+- Windows 打包说明（尚无公开下载）：[Windows 安装包](packaging-windows.md)
 - 加一个新后端：[架构](architecture.md)

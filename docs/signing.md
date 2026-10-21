@@ -1,6 +1,8 @@
 # Windows 签名与自动更新
 
-公开发布前需要**你自己生成**密钥。仓库里的 updater 公钥只是脚手架，**私钥和 Authenticode 证书绝不能进 Git**。没有这些 Secrets 时，CI 仍会打出 **未签名** 的 NSIS，检查必须保持绿色。
+**现在还没有公开发布。** GitHub Releases 为空，`latest.json` 返回 404。本文是维护者清单，不是用户下载说明。
+
+公开发布前需要**你自己生成**密钥。仓库里的 updater 公钥只是脚手架，**私钥和 Authenticode 证书绝不能进 Git**。没有这些 Secrets 时，CI 仍会打出 **未签名** 的 NSIS，检查必须保持绿色。未签名的 `setup.exe` 一旦发给用户，Windows SmartScreen 会提示未知发布者。
 
 相关工作流：
 

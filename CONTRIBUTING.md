@@ -13,5 +13,5 @@
 
 完整文档目录：[docs/README.md](docs/README.md)
 
-- Wiki：<https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>（双语导航；同步稿 `docs/wiki-seed/`）
+- Wiki：<https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>（双语导航；草稿在 `docs/wiki-seed/`，以 `docs/` 为准）
 - Discussions：<https://github.com/XYAIStudio/xyai-xiaoyuan/discussions>

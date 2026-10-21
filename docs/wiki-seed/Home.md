@@ -6,9 +6,13 @@ XYAI’s official desktop companion. Xiaoyuan is **XYAI’s own mascot**: always
 
 源码 / Source: <https://github.com/XYAIStudio/xyai-xiaoyuan>
 
-完整知识以仓库 [`docs/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs) 为准。本 Wiki 由 [`docs/wiki-seed/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs/wiki-seed) 同步，可直接粘贴。
+公开安装包还没有：GitHub Releases 为空，`latest.json` 返回 404。请从源码运行，不要到 Actions 里找下载。
 
-Canonical docs stay in [`docs/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs) on `main`. These pages are synced from [`docs/wiki-seed/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs/wiki-seed).
+No public installer yet: GitHub Releases are empty and `latest.json` returns 404. Run from source; Actions artifacts are not a download page.
+
+完整知识以仓库 [`docs/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs) 为准。这些页面来自 [`docs/wiki-seed/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs/wiki-seed) 草稿，方便以后粘贴；不保证与线上 Wiki 逐页一致。
+
+Canonical docs stay in [`docs/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs) on `main`. These pages are a draft from [`docs/wiki-seed/`](https://github.com/XYAIStudio/xyai-xiaoyuan/tree/main/docs/wiki-seed); pasting them does not mean the live Wiki already matches every page.
 
 ## 导航 / Navigation
 

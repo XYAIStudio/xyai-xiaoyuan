@@ -15,10 +15,10 @@ XYAI精灵小元的完整说明都在本目录。界面文案与文档以中文�
 | [本机联调](live-integration.md)         | `npm run doctor`、真实 FreeOS / openXYOS / Grok Bot、`.env.example`        |
 | [FreeOS 联调](live-freeos.md)           | doctor → 设置 → 测试连接 → 聊天（默认 :8088）                              |
 | [形象画廊](gallery.md)                  | 动态 GIF 与 16 静态造型预览（`assets/showcase/`）                          |
-| [Windows 安装包](packaging-windows.md)  | NSIS CI、Artifacts、`latest.json`、为何不打 MSI                            |
+| [Windows 安装包](packaging-windows.md)  | 未发布的 Windows NSIS CI；尚无公开下载；为何不打 MSI                       |
 | [签名与更新](signing.md)                | `TAURI_SIGNING_PRIVATE_KEY`、可选 Authenticode、发布检查清单               |
 | [架构](architecture.md)                 | `BackendProvider` 插件模型，如何接入新的 XYAIStudio 后端                   |
-| [贡献指南](contributing.md)             | `make check`、PR 约定、文档与 Wiki 同步                                    |
+| [贡献指南](contributing.md)             | `make check`、PR 约定、文档与 Wiki 草稿                                    |
 
 仓库根目录还有 [README.md](../README.md)、[README_EN.md](../README_EN.md) 与 [CONTRIBUTING.md](../CONTRIBUTING.md)。形象展示副本在 [`assets/showcase/`](../assets/showcase/README.md)。
 
@@ -27,7 +27,7 @@ XYAI精灵小元的完整说明都在本目录。界面文案与文档以中文�
 - Wiki：<https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
 - Discussions：<https://github.com/XYAIStudio/xyai-xiaoyuan/discussions>
 
-[`wiki-seed/`](wiki-seed/) 是 GitHub Wiki 的同步稿（文件名 = Wiki 标题）。首页为双语导航，指向：
+[`wiki-seed/`](wiki-seed/) 是 Wiki 草稿（文件名沿用拟定标题），方便以后粘贴。以本目录正文为准，不保证与 GitHub Wiki 逐页一致。首页草稿为双语导航，指向：
 
 | Wiki 中文                                                                         | Wiki English                                                                  |
 | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |

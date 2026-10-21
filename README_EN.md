@@ -7,7 +7,7 @@
   </p>
   <p>
     <a href="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/ci.yml"><img src="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-    <a href="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml"><img src="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml/badge.svg" alt="Windows installers" /></a>
+    <a href="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml"><img src="https://github.com/XYAIStudio/xyai-xiaoyuan/actions/workflows/windows.yml/badge.svg" alt="Windows NSIS CI (unpublished)" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT" /></a>
     <img src="https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white" alt="Tauri 2" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19" />
@@ -65,14 +65,14 @@ Xiaoyuan is **XYAI’s own mascot**. Official poses ship in-repo.
 | -------------------- | ---------------------------------------------------------------------------- |
 | Always-on-top pet    | Frameless, draggable; single-click cycles a pose, double-click opens chat    |
 | Compact chat         | Markdown, streaming replies, agents, pomodoro bar, companion chips           |
-| System tray          | Open pet / chat / pomodoro / pat / settings / check for updates              |
+| System tray          | Open pet / chat / pomodoro / pat / settings; “check for updates” has no feed |
 | 16 official poses    | Lifecycle, activity, clock, and pomodoro; optional pose lock                 |
 | Companion desktop    | Pat / feed / night, mood meter, pet-side toasts (not OS spam)                |
 | Sound pack           | Master off by default; in-repo original loop + interaction cues              |
 | Screen understanding | Off by default; local window title / screenshot heuristics, never uploaded   |
 | Pluggable backends   | `BackendProvider` for first-party XYAIStudio products, plus a local Grok Bot |
-| Windows installer    | GitHub Actions NSIS `setup.exe` (signing secrets optional)                   |
-| Auto-update          | Settings / tray → GitHub Releases `latest.json`                              |
+| Windows installer    | No public download. CI can build unpublished NSIS; Releases are empty        |
+| Auto-update          | Not available. `latest.json` currently 404s                                  |
 
 ## Overview
 
@@ -111,7 +111,7 @@ See [docs/getting-started.md](docs/getting-started.md).
 ## Usage
 
 - Single-click cycles a playful pose; double-click opens chat; right-click for 16 poses, 拍一拍 / 喂食 / 晚安, and **锁定姿态** (lock pose).
-- Tray: open pet / chat / pomodoro / pat / settings / check for updates.
+- Tray: open pet / chat / pomodoro / pat / settings. “Check for updates” is in the menu, but no update feed is published.
 - Shortcuts: `CmdOrCtrl+Shift+Y` shows Xiaoyuan; `CmdOrCtrl+Shift+C` opens chat; `CmdOrCtrl+Shift+P` pomodoro; `CmdOrCtrl+Shift+K` pat. Activity and sound live under **Settings → 陪伴** (master sound off by default).
 
 Connect a live product, then fill **Settings → Backend**. Without a live backend:
@@ -126,7 +126,7 @@ npm run mock:backends
 | openXYOS | `http://127.0.0.1:13000` | `xiaoyuan@xyai.local` / `xiaoyuan` |
 | Grok Bot | `http://127.0.0.1:11340` | token `mock-token`                 |
 
-Poses crossfade (~380ms); all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. Windows NSIS installers are built on GitHub Actions (`windows-latest`); artifact `xyai-xiaoyuan-windows-x64-nsis`. Auto-update uses GitHub Releases `latest.json` — add `TAURI_SIGNING_PRIVATE_KEY` before the first public release ([docs/packaging-windows.md](docs/packaging-windows.md)).
+Poses crossfade (~380ms); all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. There is no public download: CI can produce an unpublished Windows NSIS build, GitHub Releases are empty, and `latest.json` 404s. That CI job packages Windows NSIS only. An unsigned installer, if one is published later, will trip SmartScreen until Authenticode is configured ([docs/packaging-windows.md](docs/packaging-windows.md)).
 
 ## Development
 
@@ -142,19 +142,19 @@ Add another backend by implementing `BackendProvider` and registering it; do not
 
 Chinese-first index: [docs/README.md](docs/README.md)
 
-| Doc                                            | Topic                           |
-| ---------------------------------------------- | ------------------------------- |
-| [Getting started](docs/getting-started.md)     | Install and run                 |
-| [FreeOS live](docs/live-freeos.md)             | doctor → settings → test → chat |
-| [Backends](docs/backends.md)                   | Four providers + mock gateways  |
-| [Poses](docs/poses.md)                         | 16 official poses               |
-| [Activity & sound](docs/activity-and-sound.md) | Idle sensing, sfx, privacy      |
-| [Gallery](docs/gallery.md)                     | GIF + stills                    |
-| [Windows packaging](docs/packaging-windows.md) | NSIS CI and updater keys        |
-| [Architecture](docs/architecture.md)           | `BackendProvider` plugin model  |
-| [Contributing](docs/contributing.md)           | `make check` and PR norms       |
+| Doc                                            | Topic                                |
+| ---------------------------------------------- | ------------------------------------ |
+| [Getting started](docs/getting-started.md)     | Install and run                      |
+| [FreeOS live](docs/live-freeos.md)             | doctor → settings → test → chat      |
+| [Backends](docs/backends.md)                   | Four providers + mock gateways       |
+| [Poses](docs/poses.md)                         | 16 official poses                    |
+| [Activity & sound](docs/activity-and-sound.md) | Idle sensing, sfx, privacy           |
+| [Gallery](docs/gallery.md)                     | GIF + stills                         |
+| [Windows packaging](docs/packaging-windows.md) | Unpublished NSIS; no public download |
+| [Architecture](docs/architecture.md)           | `BackendProvider` plugin model       |
+| [Contributing](docs/contributing.md)           | `make check` and PR norms            |
 
-Wiki (bilingual nav on Home; seed in [`docs/wiki-seed/`](docs/wiki-seed/)):
+[`docs/wiki-seed/`](docs/wiki-seed/) is a Wiki draft you can paste later. In-repo `docs/` stay canonical; the GitHub Wiki is not guaranteed to match every draft page:
 
 - Home: <https://github.com/XYAIStudio/xyai-xiaoyuan/wiki>
 - [Quick Start](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/Quick-Start) / [快速开始](https://github.com/XYAIStudio/xyai-xiaoyuan/wiki/快速开始)
