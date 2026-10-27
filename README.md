@@ -188,7 +188,7 @@ npm run mock:backends
 - [Releases](https://github.com/XYAIStudio/xyai-xiaoyuan/releases) 还没有任何发布。
 - 自动更新清单 `https://github.com/XYAIStudio/xyai-xiaoyuan/releases/latest/download/latest.json` 返回 404。
 - 工作流 **Windows installers**（`.github/workflows/windows.yml`）可以在 `windows-latest` 打出未发布的 NSIS `setup.exe`，Artifact 名 `xyai-xiaoyuan-windows-x64-nsis`。未登录打开 Artifact 会 404，不能当成下载入口。
-- 这条 CI **只打 Windows NSIS**（不打 MSI）。安装包文件名用 ASCII `XYAI Xiaoyuan`（`tauri.windows.conf.json`），窗口标题仍是中文。`Release` 工作流里另有 Linux / macOS 目标，但同样没有已发布的 Release。
+- 这条 CI **只打 Windows NSIS**（不打 MSI）。安装目录和快捷方式用无空格的 `XYAI-Xiaoyuan`，程序文件是 `xyai-xiaoyuan.exe`（`tauri.windows.conf.json`）。带空格的旧文件名会让快捷方式打不开，卸载也删不掉仍在运行的小元。窗口标题仍是中文。`Release` 工作流里另有 Linux / macOS 目标，但同样没有已发布的 Release。
 - 试用请按上面的快速开始从源码运行。本机已是 Windows 时，维护者可以 `npx tauri build --bundles nsis`。
 
 以后若发布**未签名**的 Windows 安装包，SmartScreen 会提示未知发布者，直到配置 Authenticode。密钥与发布清单见 [docs/signing.md](docs/signing.md)，打包细节见 [docs/packaging-windows.md](docs/packaging-windows.md)。没有 updater 密钥时 CI 仍可打未签名 NSIS，但不会上传 `latest.json`。

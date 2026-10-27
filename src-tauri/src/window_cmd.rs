@@ -105,6 +105,22 @@ fn window_of(app: &AppHandle, label: &str) -> Result<WebviewWindow, String> {
         .ok_or_else(|| format!("window `{label}` not found"))
 }
 
+/// Map the pet onto the current desktop. Windows installers used to leave a
+/// running process with no taskbar button, so a shortcut click looked like a
+/// failed launch and uninstall could not delete the locked exe.
+pub fn present_pet_on_launch(app: &AppHandle) {
+    let Some(pet) = app.get_webview_window("pet") else {
+        return;
+    };
+    #[cfg(windows)]
+    {
+        let _ = pet.set_skip_taskbar(false);
+    }
+    let _ = pet.show();
+    let _ = pet.unminimize();
+    let _ = pet.set_focus();
+}
+
 pub fn install_close_to_hide(app: &AppHandle) {
     for (label, window) in app.webview_windows() {
         let handle = app.clone();

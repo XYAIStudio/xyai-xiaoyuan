@@ -126,7 +126,7 @@ npm run mock:backends
 | openXYOS | `http://127.0.0.1:13000` | `xiaoyuan@xyai.local` / `xiaoyuan` |
 | Grok Bot | `http://127.0.0.1:11340` | token `mock-token`                 |
 
-Poses crossfade (~380ms); all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. There is no public download: CI can produce an unpublished Windows NSIS build, GitHub Releases are empty, and `latest.json` 404s. That CI job packages Windows NSIS only. An unsigned installer, if one is published later, will trip SmartScreen until Authenticode is configured ([docs/packaging-windows.md](docs/packaging-windows.md)).
+Poses crossfade (~380ms); all 16 PNGs are preloaded. Idle gently cycles wave/hug every ~12s and pauses while streaming or dragging. There is no public download: CI can produce an unpublished Windows NSIS build, GitHub Releases are empty, and `latest.json` 404s. That CI job packages Windows NSIS only. The install folder is `XYAI-Xiaoyuan` and the executable is `xyai-xiaoyuan.exe` (no spaces); a spaced name made the shortcut miss the program and blocked uninstall. An unsigned installer, if one is published later, will trip SmartScreen until Authenticode is configured ([docs/packaging-windows.md](docs/packaging-windows.md)).
 
 ## Development
 

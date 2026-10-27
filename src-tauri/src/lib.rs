@@ -49,8 +49,11 @@ pub fn run() {
             screen_cmd::analyze_screen_local,
         ])
         .setup(|app| {
-            tray::setup(app.handle())?;
+            if let Err(error) = tray::setup(app.handle()) {
+                eprintln!("[xyai-xiaoyuan] tray unavailable, pet window still opens: {error}");
+            }
             window_cmd::restore_pet_position(app.handle());
+            window_cmd::present_pet_on_launch(app.handle());
             window_cmd::install_close_to_hide(app.handle());
             if let Err(error) = window_cmd::reload_hotkeys(app.handle().clone()) {
                 eprintln!("[xyai-xiaoyuan] hotkeys: {error}");

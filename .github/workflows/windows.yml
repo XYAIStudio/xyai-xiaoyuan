@@ -73,7 +73,8 @@ jobs:
             EXTRA+=(--config "${CONFIG_JSON}")
           fi
           # NSIS only: WiX light.exe fails on this runner with a Chinese MSI filename.
-          # Windows packages use ASCII productName from tauri.windows.conf.json.
+          # Windows productName is XYAI-Xiaoyuan (no spaces) and the exe is xyai-xiaoyuan.exe.
+          # A spaced product name breaks the shortcut and leaves uninstall unable to kill the pet.
           npx tauri build --bundles nsis "${EXTRA[@]}"
           echo "NSIS output:"
           ls -la src-tauri/target/release/bundle/nsis || true

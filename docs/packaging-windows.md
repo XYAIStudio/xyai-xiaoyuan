@@ -4,7 +4,7 @@
 
 本仓库若打包 Windows，以 **NSIS**（`setup.exe`）为准。常规 CI 只打这一份 Windows 包。Linux 云主机不能签出 Windows 包。
 
-应用内窗口标题仍是「XYAI精灵小元」。安装包文件名使用 ASCII 产品名 **XYAI Xiaoyuan**（`src-tauri/tauri.windows.conf.json`），避免 WiX/NSIS 路径编码问题。
+应用内窗口标题仍是「XYAI精灵小元」。Windows 安装目录、开始菜单和安装包文件名使用**不含空格**的 ASCII 名 **XYAI-Xiaoyuan**，主程序是 `xyai-xiaoyuan.exe`（`src-tauri/tauri.windows.conf.json`）。以前的 `XYAI Xiaoyuan.exe` 带空格：快捷方式拆成错误路径，安装后打不开；桌宠又把关闭收成隐藏，卸载删不掉被占用的程序。安装和卸载前会 `taskkill` 结束当前进程和这个旧文件名。
 
 签名密钥、Authenticode 与 `latest.json` 的逐步操作见 **[signing.md](signing.md)**。本地可用 `bash scripts/generate-tauri-signer.sh --print-only` 打印 GitHub Secret 步骤（不生成证书）。
 
@@ -39,7 +39,7 @@ npx tauri build --bundles nsis
 
 - Releases 目前为空，页面上没有 `setup.exe`。
 - `latest.json` 返回 404，桌面端「检查更新」因此没有可用的更新源。
-- 成功的 **Windows installers** 运行会上传 Artifact `xyai-xiaoyuan-windows-x64-nsis`（解压后文件名形如 `XYAI Xiaoyuan_0.1.0_x64-setup.exe`）。未登录打开 Artifact 链接会 404（接口返回 401）。这不是公开分发渠道，默认大约 90 天后过期。
+- 成功的 **Windows installers** 运行会上传 Artifact `xyai-xiaoyuan-windows-x64-nsis`（解压后文件名形如 `XYAI-Xiaoyuan_0.1.0_x64-setup.exe`，里面的主程序是 `xyai-xiaoyuan.exe`）。未登录打开 Artifact 链接会 404（接口返回 401）。这不是公开分发渠道，默认大约 90 天后过期。
 - 这条 CI **只打 Windows NSIS**。Linux（AppImage / deb）和 macOS（app / dmg）只写在尚未发布过的 Release 工作流里，同样没有公开包。
 
 想试用请克隆仓库后 `npm run tauri dev`。本机 Windows 的打包命令见上一节。
@@ -57,7 +57,7 @@ npx tauri build --bundles nsis
 中文 `productName` 进了 MSI 文件名，WiX 在该 runner 上无法可靠打包。因此：
 
 - **CI 只打 NSIS**，不再调用 `light.exe`
-- Windows 平台配置使用 ASCII `productName`：`XYAI Xiaoyuan`
+- Windows 平台配置使用不含空格的 ASCII `productName`：`XYAI-Xiaoyuan`
 - 需要 MSI 时，请在本机 Windows 上确认 ASCII 产品名后自行：
 
 ```bash

@@ -6,7 +6,7 @@
 
 本仓库若打包 Windows，以 **NSIS**（`setup.exe`）为准。常规 CI 只打这一份。Linux 云主机不能签出 Windows 包。
 
-应用内窗口标题仍是「XYAI精灵小元」。安装包文件名使用 ASCII 产品名 **XYAI Xiaoyuan**（`src-tauri/tauri.windows.conf.json`），避免路径编码问题。
+应用内窗口标题仍是「XYAI精灵小元」。安装目录和安装包使用不含空格的 **XYAI-Xiaoyuan**，主程序是 `xyai-xiaoyuan.exe`（`src-tauri/tauri.windows.conf.json`）。带空格的旧文件名会让快捷方式打不开，卸载也结束不了仍在运行的小元。
 
 签名、Authenticode 与 `latest.json`：[docs/signing.md](https://github.com/XYAIStudio/xyai-xiaoyuan/blob/main/docs/signing.md)。
 
@@ -19,7 +19,7 @@
 - 未配置 `TAURI_SIGNING_PRIVATE_KEY` 时仍产出未签名 NSIS
 - Artifact 名：`xyai-xiaoyuan-windows-x64-nsis`
 
-这不是下载入口。成功运行会上传 Artifact `xyai-xiaoyuan-windows-x64-nsis`（文件名形如 `XYAI Xiaoyuan_0.1.0_x64-setup.exe`），未登录打开会 404。试用请克隆后 `npm run tauri dev`。以后若发布未签名安装包，SmartScreen 会提示未知发布者。
+这不是下载入口。成功运行会上传 Artifact `xyai-xiaoyuan-windows-x64-nsis`（文件名形如 `XYAI-Xiaoyuan_0.1.0_x64-setup.exe`，主程序 `xyai-xiaoyuan.exe`），未登录打开会 404。试用请克隆后 `npm run tauri dev`。以后若发布未签名安装包，SmartScreen 会提示未知发布者。已经装过带空格旧版的，先装这一版安装包，它会先结束旧进程再覆盖。
 
 ## 为何 CI 不打 MSI
 

@@ -75,7 +75,7 @@
       "digestAlgorithm": "sha256",
       "webviewInstallMode": {
         "type": "downloadBootstrapper",
-        "silent": true
+        "silent": false
       },
       "nsis": {
         "installMode": "currentUser",

@@ -19,7 +19,7 @@
 https://github.com/XYAIStudio/xyai-xiaoyuan/releases/latest/download/latest.json
 ```
 
-Release 工作流已设置 `updaterJsonPreferNsis: true`，因此 `latest.json` 里的 Windows 条目指向 **NSIS**（`XYAI Xiaoyuan_*_x64-setup.nsis.zip` / `setup.exe`），与 CI Artifact 一致。
+Release 工作流已设置 `updaterJsonPreferNsis: true`，因此 `latest.json` 里的 Windows 条目指向 **NSIS**（`XYAI-Xiaoyuan_*_x64-setup.nsis.zip` / `setup.exe`，主程序 `xyai-xiaoyuan.exe`），与 CI Artifact 一致。
 
 ### 生成本地密钥
 
@@ -108,7 +108,7 @@ npx tauri signer generate -w ~/.tauri/xyai-xiaoyuan.key
 3. Secrets：至少 `TAURI_SIGNING_PRIVATE_KEY`（要自动更新时）；Authenticode 按需。
 4. 打 tag `v0.1.x` / `app-v0.1.x` 或手动跑 **Release**。
 5. 确认 draft Release 上同时有：
-   - `XYAI Xiaoyuan_<ver>_x64-setup.exe`（或 nsis zip）
+   - `XYAI-Xiaoyuan_<ver>_x64-setup.exe`（或 nsis zip，内含 `xyai-xiaoyuan.exe`）
    - `latest.json`（仅在 updater 密钥存在时）
 6. 核对 `latest.json` 的 `platforms.windows-x86_64.url` 指向该 NSIS 产物。
 

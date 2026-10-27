@@ -12,6 +12,34 @@ use xyai_xiaoyuan_lib::secrets_cmd::{
 use xyai_xiaoyuan_lib::window_cmd::{chat_position, clamp_pet_position, is_http_url};
 
 #[test]
+fn windows_installer_identity_can_launch_and_uninstall() {
+    let conf = fs::read_to_string("tauri.windows.conf.json").expect("windows config");
+    let value: serde_json::Value = serde_json::from_str(&conf).expect("json");
+    let product = value["productName"].as_str().expect("productName");
+    let binary = value["mainBinaryName"].as_str().expect("mainBinaryName");
+    assert!(
+        product.is_ascii() && !product.contains([' ', '\\', '/']),
+        "install dir and shortcut name must stay ASCII without spaces, got {product}"
+    );
+    assert!(
+        binary.is_ascii() && !binary.contains([' ', '.', '\\', '/']),
+        "exe name must stay a single ASCII token, got {binary}"
+    );
+    let hooks = fs::read_to_string("nsis/hooks.nsh").expect("nsis hooks");
+    assert!(hooks.contains("NSIS_HOOK_PREINSTALL"));
+    assert!(hooks.contains("NSIS_HOOK_PREUNINSTALL"));
+    assert!(hooks.contains(&format!("/IM {binary}.exe")));
+    assert!(
+        hooks.contains("XYAI Xiaoyuan.exe"),
+        "reinstall must still stop the old spaced exe name"
+    );
+    let hook_path = value["bundle"]["windows"]["nsis"]["installerHooks"]
+        .as_str()
+        .expect("installerHooks");
+    assert_eq!(hook_path, "./nsis/hooks.nsh");
+}
+
+#[test]
 fn sixteen_official_poses_are_selectable() {
     let poses = supported_poses();
     assert_eq!(poses.len(), 16);

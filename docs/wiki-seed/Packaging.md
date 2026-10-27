@@ -6,7 +6,7 @@
 
 When this repo packages Windows, the bundle is **NSIS** (`setup.exe`). The regular CI job builds that Windows package only. Linux CI hosts cannot produce Windows bundles.
 
-In-app title stays **XYAI精灵小元**. Package filenames use the ASCII product name **XYAI Xiaoyuan** (`src-tauri/tauri.windows.conf.json`) so WiX/NSIS paths stay reliable.
+In-app title stays **XYAI精灵小元**. The Windows install directory and setup filename use the space-free ASCII name **XYAI-Xiaoyuan**, and the executable is `xyai-xiaoyuan.exe` (`src-tauri/tauri.windows.conf.json`). A spaced name made the shortcut miss the exe and left uninstall unable to delete a still-running pet.
 
 Signing, Authenticode, and `latest.json`: [docs/signing.md](https://github.com/XYAIStudio/xyai-xiaoyuan/blob/main/docs/signing.md).
 
@@ -19,7 +19,7 @@ Workflow: [Windows installers](https://github.com/XYAIStudio/xyai-xiaoyuan/actio
 - Missing `TAURI_SIGNING_PRIVATE_KEY` still builds an unsigned NSIS
 - Artifact name: `xyai-xiaoyuan-windows-x64-nsis`
 
-That artifact is not a public download. A successful run uploads `xyai-xiaoyuan-windows-x64-nsis` (filename like `XYAI Xiaoyuan_0.1.0_x64-setup.exe`); opening it while logged out returns 404. Run from source with `npm run tauri dev`. An unsigned installer published later will trip SmartScreen.
+That artifact is not a public download. A successful run uploads `xyai-xiaoyuan-windows-x64-nsis` (filename like `XYAI-Xiaoyuan_0.1.0_x64-setup.exe`, exe `xyai-xiaoyuan.exe`); opening it while logged out returns 404. Run from source with `npm run tauri dev`. An unsigned installer published later will trip SmartScreen.
 
 ## Why CI does not ship MSI
 
